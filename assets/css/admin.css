@@ -1045,6 +1045,144 @@
 }
 
 /* =========================================================================
+ * Freemius pricing screen — branded wrapper
+ * ========================================================================= */
+
+.elementor-mcp-pricing-chrome {
+	max-width: 1200px;
+	margin: 20px auto;
+	padding: 0 20px;
+}
+
+.elementor-mcp-pricing-header {
+	margin-bottom: 24px;
+}
+
+.elementor-mcp-pricing-highlights {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 12px 20px;
+	margin: 0 0 24px;
+	padding: 18px 22px;
+	background: #fff;
+	border: 1px solid var(--mcp-gray-200);
+	border-radius: var(--mcp-radius-md, 8px);
+	list-style: none;
+}
+
+.elementor-mcp-pricing-highlights li {
+	margin: 0;
+	font-size: 13.5px;
+	line-height: 1.5;
+	color: var(--mcp-gray-700, #374151);
+}
+
+.elementor-mcp-pricing-highlights strong {
+	color: var(--mcp-gray-700, #374151);
+}
+
+.elementor-mcp-pricing-check {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	margin-right: 8px;
+	border-radius: 50%;
+	background: var(--mcp-primary, #4f46e5);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	vertical-align: -3px;
+}
+
+#fs_pricing.wrap {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.elementor-mcp-pricing-footer {
+	margin-top: 32px;
+	padding-top: 24px;
+	border-top: 1px solid var(--mcp-gray-200);
+}
+
+.elementor-mcp-pricing-footer-title {
+	font-size: 18px;
+	font-weight: 600;
+	margin: 0 0 16px;
+	color: var(--mcp-gray-700, #374151);
+}
+
+.elementor-mcp-pricing-faq {
+	display: grid;
+	gap: 10px;
+	margin-bottom: 20px;
+}
+
+.elementor-mcp-pricing-faq details {
+	background: #fff;
+	border: 1px solid var(--mcp-gray-200);
+	border-radius: var(--mcp-radius-md, 8px);
+	padding: 14px 18px;
+}
+
+.elementor-mcp-pricing-faq summary {
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 14px;
+	color: var(--mcp-gray-700, #374151);
+	list-style: none;
+	position: relative;
+	padding-right: 24px;
+}
+
+.elementor-mcp-pricing-faq summary::-webkit-details-marker {
+	display: none;
+}
+
+.elementor-mcp-pricing-faq summary::after {
+	content: '+';
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 18px;
+	font-weight: 400;
+	color: var(--mcp-gray-500);
+	transition: transform var(--mcp-transition);
+}
+
+.elementor-mcp-pricing-faq details[open] summary::after {
+	content: '\2212';
+}
+
+.elementor-mcp-pricing-faq details p {
+	margin: 10px 0 0;
+	color: var(--mcp-gray-500);
+	font-size: 13.5px;
+	line-height: 1.6;
+}
+
+.elementor-mcp-pricing-contact {
+	text-align: center;
+	font-size: 13.5px;
+	color: var(--mcp-gray-500);
+	margin: 0;
+	padding: 12px 0;
+}
+
+.elementor-mcp-pricing-contact a {
+	color: var(--mcp-primary, #4f46e5);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.elementor-mcp-pricing-contact a:hover {
+	text-decoration: underline;
+}
+
+/* =========================================================================
  * Prompts Tab
  * ========================================================================= */
 

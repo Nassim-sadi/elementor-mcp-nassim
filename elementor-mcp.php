@@ -45,16 +45,13 @@ if ( ! function_exists( 'emcp_pro_fs' ) ) {
                 'premium_slug'        => 'emcp-pro',
                 'type'                => 'plugin',
                 'public_key'          => 'pk_2b2a026d5c27655581635abcd4556',
-                // Distributed as a single zip via Freemius for both free and
-                // paid sites. Premium features (when added) are gated at runtime
-                // via emcp_pro_fs()->can_use_premium_code(), not at build time,
-                // so this flag stays false for everyone.
                 'is_premium'          => false,
                 'premium_suffix'      => 'Pro',
                 'has_premium_version' => true,
                 'has_addons'          => false,
                 'has_paid_plans'      => true,
                 'is_org_compliant'    => false,
+				'has_affiliation'     => 'selected',
                 'menu'                => array(
                     'slug'           => 'elementor-mcp',
                     'support'        => false,
@@ -255,6 +252,12 @@ function elementor_mcp_init(): void {
 	// Admin.
 	if ( is_admin() ) {
 		require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-admin.php';
+
+		// Branded chrome around the Freemius pricing screen.
+		if ( function_exists( 'emcp_pro_fs' ) ) {
+			require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-pricing-page.php';
+			( new Elementor_MCP_Pricing_Page() )->init();
+		}
 	}
 
 	// Boot the plugin.
