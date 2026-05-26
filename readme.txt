@@ -3,7 +3,7 @@ Contributors: mianshahzadraza
 Tags: elementor, mcp, ai, page-builder, automation
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -155,6 +155,10 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 
 == Changelog ==
 
+= 1.6.1 =
+* Changed: Uninstall logic moved from `uninstall.php` to the Freemius `after_uninstall` hook so Freemius's own cleanup and ours run in the right order. The `uninstall.php` file has been removed.
+* Added: `elementor_mcp_low_tool_mode` and `elementor_mcp_defaults_applied` options are now cleaned up on uninstall (previously missed when those options were added in 1.6.0).
+
 = 1.6.0 =
 * New: Dedicated **EMCP Tools** top-level admin menu with Tools, Connection, Prompts, and Changelog submenus (previously a single tabbed screen under Settings).
 * New: Atomic element tools (Elementor 4.0+) are now listed in the admin Tools screen and can be toggled individually.
@@ -261,6 +265,9 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 * Node.js HTTP proxy for remote connections.
 
 == Upgrade Notice ==
+
+= 1.6.1 =
+Cleanup-only release: moves the uninstall handler from `uninstall.php` to the Freemius `after_uninstall` hook (required by Freemius), and adds the two options introduced in 1.6.0 to the cleanup list. No behavior changes during normal use.
 
 = 1.6.0 =
 Fixes #45 — admin tool toggles now actually filter what MCP clients see. New top-level admin menu with submenus, Low-tools mode for Antigravity/Gemini-friendly tool counts, and Pro widgets now disabled by default to stay under 100-tool client caps.

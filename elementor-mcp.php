@@ -3,7 +3,7 @@
  * Plugin Name:       MCP Tools for Elementor
  * Plugin URI:        https://github.com/msrbuilds/elementor-mcpelementor-mcp
  * Description:       Extends the WordPress MCP Adapter to expose Elementor data, widgets, and page design tools as MCP tools for AI agents.
- * Version:           1.6.0
+ * Version:           1.6.1
  * Requires at least: 6.9
  * Tested up to:      6.9
  * Requires PHP:      8.0
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'ELEMENTOR_MCP_VERSION', '1.6.0' );
+define( 'ELEMENTOR_MCP_VERSION', '1.6.1' );
 define( 'ELEMENTOR_MCP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ELEMENTOR_MCP_URL', plugin_dir_url( __FILE__ ) );
 define( 'ELEMENTOR_MCP_BASENAME', plugin_basename( __FILE__ ) );
@@ -69,6 +69,22 @@ if ( ! function_exists( 'emcp_pro_fs' ) ) {
     emcp_pro_fs();
     // Signal that SDK was initiated.
     do_action( 'emcp_pro_fs_loaded' );
+
+    // Freemius requires uninstall logic to live on its after_uninstall hook
+    // instead of WordPress's uninstall.php, so its own cleanup and ours run
+    // in the right order.
+    emcp_pro_fs()->add_action( 'after_uninstall', 'elementor_mcp_after_uninstall' );
+}
+
+/**
+ * Removes plugin-owned options on uninstall.
+ *
+ * @since 1.6.1
+ */
+function elementor_mcp_after_uninstall() {
+    delete_option( 'elementor_mcp_disabled_tools' );
+    delete_option( 'elementor_mcp_low_tool_mode' );
+    delete_option( 'elementor_mcp_defaults_applied' );
 }
 /**
  * Recursively removes empty strings from enum arrays in a JSON Schema.
