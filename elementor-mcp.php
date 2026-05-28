@@ -51,7 +51,6 @@ if ( ! function_exists( 'emcp_pro_fs' ) ) {
                 'is_org_compliant'    => false,
                 'menu'                => array(
                     'slug'           => 'elementor-mcp',
-                    'first-path'     => 'admin.php?page=elementor-mcp',
                     'support'        => false,
                 ),
             ) );
