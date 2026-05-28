@@ -79,6 +79,8 @@ class Elementor_MCP_Admin {
 				self::PAGE_SLUG                 => __( 'Tools', 'elementor-mcp' ),
 				self::PAGE_SLUG . '-connection' => __( 'Connection', 'elementor-mcp' ),
 				self::PAGE_SLUG . '-prompts'    => __( 'Prompts', 'elementor-mcp' ),
+				self::PAGE_SLUG . '-templates'  => __( 'Templates', 'elementor-mcp' ),
+				self::PAGE_SLUG . '-skills'     => __( 'Skills', 'elementor-mcp' ),
 				self::PAGE_SLUG . '-changelog'  => __( 'Changelog', 'elementor-mcp' ),
 			);
 		}
@@ -99,6 +101,10 @@ class Elementor_MCP_Admin {
 				return 'connection';
 			case self::PAGE_SLUG . '-prompts':
 				return 'prompts';
+			case self::PAGE_SLUG . '-templates':
+				return 'templates';
+			case self::PAGE_SLUG . '-skills':
+				return 'skills';
 			case self::PAGE_SLUG . '-changelog':
 				return 'changelog';
 			default:
@@ -307,10 +313,28 @@ class Elementor_MCP_Admin {
 			}
 		}
 
-		// Count sample prompts.
-		$prompts_dir   = ELEMENTOR_MCP_DIR . 'prompts/';
-		$prompt_files  = is_dir( $prompts_dir ) ? glob( $prompts_dir . '*.md' ) : array();
-		$prompt_count  = count( $prompt_files );
+		// Count prompts. For Pro sites with a synced bundle, use the actual
+		// premium-library count (matches what the Prompts tab shows). For
+		// everyone else, count the bundled sample files in prompts/.
+		$prompt_count = 0;
+		if (
+			class_exists( 'Elementor_MCP_Pro_Prompts' )
+			&& Elementor_MCP_Pro_Prompts::user_has_access()
+		) {
+			$bundle = get_transient( Elementor_MCP_Pro_Prompts::CACHE_KEY );
+			if ( is_array( $bundle ) && ! empty( $bundle['categories'] ) ) {
+				foreach ( $bundle['categories'] as $category ) {
+					if ( ! empty( $category['prompts'] ) && is_array( $category['prompts'] ) ) {
+						$prompt_count += count( $category['prompts'] );
+					}
+				}
+			}
+		}
+		if ( 0 === $prompt_count ) {
+			$prompts_dir  = ELEMENTOR_MCP_DIR . 'prompts/';
+			$prompt_files = is_dir( $prompts_dir ) ? glob( $prompts_dir . '*.md' ) : array();
+			$prompt_count = count( $prompt_files );
+		}
 
 		?>
 		<div class="wrap elementor-mcp-admin">
@@ -343,12 +367,8 @@ class Elementor_MCP_Admin {
 					// EMCP Tools menu, so we don't need a redundant header link.
 					$elementor_mcp_show_upgrade = ! function_exists( 'emcp_pro_fs' )
 						|| ! emcp_pro_fs()->can_use_premium_code();
-					if ( $elementor_mcp_show_upgrade ) :
-						$elementor_mcp_upgrade_url = function_exists( 'emcp_pro_fs' )
-							? emcp_pro_fs()->get_upgrade_url()
-							: 'https://emcp.msrbuilds.com/pricing';
-						?>
-						<a href="<?php echo esc_url( $elementor_mcp_upgrade_url ); ?>" class="elementor-mcp-header-btn elementor-mcp-header-btn--primary">
+					if ( $elementor_mcp_show_upgrade ) : ?>
+						<a href="<?php echo esc_url( elementor_mcp_upgrade_url() ); ?>" class="elementor-mcp-header-btn elementor-mcp-header-btn--primary" target="_blank" rel="noopener noreferrer">
 							<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
 							<?php esc_html_e( 'Upgrade to Pro', 'elementor-mcp' ); ?>
 						</a>
@@ -403,6 +423,10 @@ class Elementor_MCP_Admin {
 					include ELEMENTOR_MCP_DIR . 'includes/admin/views/page-connection.php';
 				} elseif ( 'prompts' === $active_tab ) {
 					include ELEMENTOR_MCP_DIR . 'includes/admin/views/page-prompts.php';
+				} elseif ( 'templates' === $active_tab ) {
+					include ELEMENTOR_MCP_DIR . 'includes/admin/views/page-templates.php';
+				} elseif ( 'skills' === $active_tab ) {
+					include ELEMENTOR_MCP_DIR . 'includes/admin/views/page-skills.php';
 				} elseif ( 'changelog' === $active_tab ) {
 					include ELEMENTOR_MCP_DIR . 'includes/admin/views/page-changelog.php';
 				} else {

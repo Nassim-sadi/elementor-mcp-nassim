@@ -3,7 +3,7 @@ Contributors: mianshahzadraza
 Tags: elementor, mcp, ai, page-builder, automation
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -155,6 +155,17 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 
 == Changelog ==
 
+= 1.7.1 =
+* New: Premium Templates library — apply ready-made Elementor designs to a new draft page or import them into Elementor's Saved Templates library. Auto-synced from the EMCP Tools server, category filter + thumbnails. Accepts Elementor's native template export shape.
+* New: EMCP Agent Skill download for Pro subscribers — pre-written Anthropic Agent Skill with install guides for Claude Code, Claude Desktop, Cursor, Windsurf, Antigravity. New Skills admin tab.
+* New: Global "Upgrade to Pro" admin banner on non-EMCP screens for non-Pro sites. Dismissible per-user.
+* New: "Read the Docs" header button in the admin. Upgrade-to-Pro button hidden for active Pro sites.
+* Changed: Prompts tab hides the 5 bundled samples for Pro users — premium library supersedes them.
+* Changed: Stats-bar prompt count reflects the synced premium library size (e.g. 50) on Pro sites.
+* Changed: All in-plugin "Upgrade to Pro" CTAs point at https://emcp.msrbuilds.com/pricing and open in a new tab.
+* Changed: Reverted the Freemius pricing-screen wrapper — pricing iframe renders native again.
+* Fixed: Premium prompts/templates transient caches and upgrade-banner user-meta scrubbed on uninstall.
+
 = 1.7.0 =
 * New: Premium Prompts library is now live for Pro subscribers — 50+ industry-specific landing-page prompts across 10 categories, auto-synced from the EMCP Tools server. Free users continue to see the 5 bundled sample prompts plus an upgrade CTA.
 * New: Category filter pills + Sync Library button on the Prompts admin page for Pro users.
@@ -277,6 +288,9 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 * Node.js HTTP proxy for remote connections.
 
 == Upgrade Notice ==
+
+= 1.7.1 =
+Premium Templates library + EMCP Agent Skill download go live for Pro subscribers. New Skills and Templates admin tabs. Global upgrade banner on non-EMCP admin screens. All in-plugin Upgrade CTAs now route to the external pricing page on emcp.msrbuilds.com.
 
 = 1.7.0 =
 Premium Prompts go live — 50+ landing-page prompts across 10 industries, auto-synced from the EMCP Tools server for Pro subscribers. Authentication moves from query parameters to the Authorization Bearer header so license keys stop showing up in server access logs. New "Read the Docs" link in the admin header points at the new docs site.

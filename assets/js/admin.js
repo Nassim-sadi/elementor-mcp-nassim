@@ -399,8 +399,12 @@
 				btn.disabled = true;
 				btn.innerHTML = '<span class="dashicons dashicons-update spin" aria-hidden="true"></span> ' + ( elementorMcpAdmin.syncing || 'Syncing…' );
 
+				// Action override via data-sync-action lets the same button
+				// pattern work for prompts and templates. Falls back to the
+				// prompts action for backwards compat with the existing UI.
+				var action = btn.getAttribute( 'data-sync-action' ) || 'elementor_mcp_sync_pro_prompts';
 				var body = new URLSearchParams();
-				body.append( 'action', 'elementor_mcp_sync_pro_prompts' );
+				body.append( 'action', action );
 				body.append( 'nonce', btn.getAttribute( 'data-nonce' ) || '' );
 
 				fetch( elementorMcpAdmin.ajaxUrl, {
@@ -429,6 +433,83 @@
 		} );
 	}
 
+	/**
+	 * Templates page — Apply-to-New-Page and Import-to-Library buttons.
+	 * Single delegated click handler routes to whichever AJAX action the
+	 * button is configured for. Both open the result in a new tab on success.
+	 */
+	function initProTemplateActions() {
+		var grid = document.querySelector( '.elementor-mcp-template-grid' );
+		if ( ! grid ) {
+			return;
+		}
+		var applyNonce  = grid.getAttribute( 'data-apply-nonce' )  || '';
+		var importNonce = grid.getAttribute( 'data-import-nonce' ) || '';
+
+		grid.addEventListener( 'click', function ( e ) {
+			var applyBtn  = e.target.closest( '.elementor-mcp-template-apply' );
+			var importBtn = e.target.closest( '.elementor-mcp-template-import' );
+			var btn = applyBtn || importBtn;
+			if ( ! btn ) {
+				return;
+			}
+			if ( typeof elementorMcpAdmin === 'undefined' || ! elementorMcpAdmin.ajaxUrl ) {
+				return;
+			}
+
+			var isApply = !! applyBtn;
+			var action  = isApply ? 'elementor_mcp_apply_pro_template' : 'elementor_mcp_import_pro_template';
+			var nonce   = isApply ? applyNonce : importNonce;
+			var pending = isApply ? 'Creating…' : 'Importing…';
+			var failMsg = isApply ? 'Create failed.' : 'Import failed.';
+
+			var category = btn.getAttribute( 'data-category-slug' ) || '';
+			var template = btn.getAttribute( 'data-template-slug' ) || '';
+			var original = btn.innerHTML;
+			btn.disabled = true;
+			btn.textContent = pending;
+
+			var body = new URLSearchParams();
+			body.append( 'action', action );
+			body.append( 'nonce', nonce );
+			body.append( 'category_slug', category );
+			body.append( 'template_slug', template );
+			if ( isApply ) {
+				body.append( 'target_post_id', '0' );
+			}
+
+			fetch( elementorMcpAdmin.ajaxUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: body.toString(),
+			} )
+				.then( function ( r ) { return r.json(); } )
+				.then( function ( res ) {
+					var ok = res && res.success && res.data;
+					// Apply → open the new page's Elementor editor.
+					// Import → open the Saved Templates library list so the
+					// user can see the new entry.
+					var openUrl = ok ? ( isApply ? res.data.edit_url : res.data.library_url ) : '';
+					if ( openUrl ) {
+						window.open( openUrl, '_blank', 'noopener' );
+						btn.disabled = false;
+						btn.innerHTML = original;
+					} else {
+						var msg = ( res && res.data && res.data.message ) ? res.data.message : failMsg;
+						window.alert( msg );
+						btn.disabled = false;
+						btn.innerHTML = original;
+					}
+				} )
+				.catch( function () {
+					window.alert( failMsg + ' Check your connection and try again.' );
+					btn.disabled = false;
+					btn.innerHTML = original;
+				} );
+		} );
+	}
+
 	// Initialize on DOM ready.
 	if ( document.readyState === 'loading' ) {
 		document.addEventListener( 'DOMContentLoaded', function () {
@@ -437,6 +518,7 @@
 			initCopyButtons();
 			initProPromptFilters();
 			initProSync();
+			initProTemplateActions();
 		} );
 	} else {
 		initToolsForm();
@@ -444,5 +526,6 @@
 		initCopyButtons();
 		initProPromptFilters();
 		initProSync();
+		initProTemplateActions();
 	}
 })();

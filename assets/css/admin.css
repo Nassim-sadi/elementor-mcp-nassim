@@ -1045,144 +1045,6 @@
 }
 
 /* =========================================================================
- * Freemius pricing screen — branded wrapper
- * ========================================================================= */
-
-.elementor-mcp-pricing-chrome {
-	max-width: 1200px;
-	margin: 20px auto;
-	padding: 0 20px;
-}
-
-.elementor-mcp-pricing-header {
-	margin-bottom: 24px;
-}
-
-.elementor-mcp-pricing-highlights {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-	gap: 12px 20px;
-	margin: 0 0 24px;
-	padding: 18px 22px;
-	background: #fff;
-	border: 1px solid var(--mcp-gray-200);
-	border-radius: var(--mcp-radius-md, 8px);
-	list-style: none;
-}
-
-.elementor-mcp-pricing-highlights li {
-	margin: 0;
-	font-size: 13.5px;
-	line-height: 1.5;
-	color: var(--mcp-gray-700, #374151);
-}
-
-.elementor-mcp-pricing-highlights strong {
-	color: var(--mcp-gray-700, #374151);
-}
-
-.elementor-mcp-pricing-check {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 18px;
-	height: 18px;
-	margin-right: 8px;
-	border-radius: 50%;
-	background: var(--mcp-primary, #4f46e5);
-	color: #fff;
-	font-size: 11px;
-	font-weight: 700;
-	vertical-align: -3px;
-}
-
-#fs_pricing.wrap {
-	max-width: 1200px;
-	margin: 0 auto;
-}
-
-.elementor-mcp-pricing-footer {
-	margin-top: 32px;
-	padding-top: 24px;
-	border-top: 1px solid var(--mcp-gray-200);
-}
-
-.elementor-mcp-pricing-footer-title {
-	font-size: 18px;
-	font-weight: 600;
-	margin: 0 0 16px;
-	color: var(--mcp-gray-700, #374151);
-}
-
-.elementor-mcp-pricing-faq {
-	display: grid;
-	gap: 10px;
-	margin-bottom: 20px;
-}
-
-.elementor-mcp-pricing-faq details {
-	background: #fff;
-	border: 1px solid var(--mcp-gray-200);
-	border-radius: var(--mcp-radius-md, 8px);
-	padding: 14px 18px;
-}
-
-.elementor-mcp-pricing-faq summary {
-	cursor: pointer;
-	font-weight: 600;
-	font-size: 14px;
-	color: var(--mcp-gray-700, #374151);
-	list-style: none;
-	position: relative;
-	padding-right: 24px;
-}
-
-.elementor-mcp-pricing-faq summary::-webkit-details-marker {
-	display: none;
-}
-
-.elementor-mcp-pricing-faq summary::after {
-	content: '+';
-	position: absolute;
-	right: 0;
-	top: 50%;
-	transform: translateY(-50%);
-	font-size: 18px;
-	font-weight: 400;
-	color: var(--mcp-gray-500);
-	transition: transform var(--mcp-transition);
-}
-
-.elementor-mcp-pricing-faq details[open] summary::after {
-	content: '\2212';
-}
-
-.elementor-mcp-pricing-faq details p {
-	margin: 10px 0 0;
-	color: var(--mcp-gray-500);
-	font-size: 13.5px;
-	line-height: 1.6;
-}
-
-.elementor-mcp-pricing-contact {
-	text-align: center;
-	font-size: 13.5px;
-	color: var(--mcp-gray-500);
-	margin: 0;
-	padding: 12px 0;
-}
-
-.elementor-mcp-pricing-contact a {
-	color: var(--mcp-primary, #4f46e5);
-	font-weight: 600;
-	text-decoration: none;
-}
-
-.elementor-mcp-pricing-contact a:hover {
-	text-decoration: underline;
-}
-
-/* =========================================================================
  * Premium prompts library
  * ========================================================================= */
 
@@ -1290,6 +1152,260 @@
 
 .elementor-mcp-pro-prompt-card {
 	position: relative;
+}
+
+/* =========================================================================
+ * Skills page — download CTA + per-client install guides
+ * ========================================================================= */
+
+.elementor-mcp-skills-download {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 9px 18px;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
+	color: #fff;
+	background: var(--mcp-primary, #6366f1);
+	border: 1px solid var(--mcp-primary, #6366f1);
+	border-radius: var(--mcp-radius-sm, 6px);
+	text-decoration: none;
+	transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+	flex-shrink: 0;
+}
+
+.elementor-mcp-skills-download:hover,
+.elementor-mcp-skills-download:focus {
+	background: var(--mcp-primary-hover, #4f46e5);
+	border-color: var(--mcp-primary-hover, #4f46e5);
+	color: #fff;
+}
+
+.elementor-mcp-skills-download:active {
+	transform: translateY(1px);
+}
+
+.elementor-mcp-skills-download:focus-visible {
+	outline: 2px solid var(--mcp-primary, #6366f1);
+	outline-offset: 2px;
+}
+
+.elementor-mcp-skills-download svg {
+	flex-shrink: 0;
+}
+
+.elementor-mcp-skills-guides {
+	display: grid;
+	gap: 10px;
+	margin-top: 8px;
+}
+
+.elementor-mcp-skills-guide {
+	border: 1px solid var(--mcp-gray-200);
+	border-radius: var(--mcp-radius-md, 8px);
+	background: #fff;
+	overflow: hidden;
+}
+
+.elementor-mcp-skills-guide > summary {
+	cursor: pointer;
+	padding: 14px 18px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 14px;
+	color: var(--mcp-gray-700, #374151);
+	list-style: none;
+	position: relative;
+	padding-right: 40px;
+}
+
+.elementor-mcp-skills-guide > summary::-webkit-details-marker {
+	display: none;
+}
+
+.elementor-mcp-skills-guide > summary::after {
+	content: '+';
+	position: absolute;
+	right: 18px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 18px;
+	font-weight: 400;
+	color: var(--mcp-gray-500);
+	transition: transform var(--mcp-transition);
+}
+
+.elementor-mcp-skills-guide[open] > summary::after {
+	content: '\2212';
+}
+
+.elementor-mcp-skills-guide__hint {
+	font-size: 12px;
+	color: var(--mcp-gray-500);
+	font-weight: 400;
+	margin-left: auto;
+	padding-right: 8px;
+}
+
+.elementor-mcp-skills-guide__body {
+	padding: 0 18px 16px;
+	font-size: 13.5px;
+	line-height: 1.55;
+	color: var(--mcp-gray-700, #374151);
+	border-top: 1px solid var(--mcp-gray-100);
+	padding-top: 14px;
+}
+
+.elementor-mcp-skills-guide__body p { margin: 0 0 10px; }
+.elementor-mcp-skills-guide__body ol,
+.elementor-mcp-skills-guide__body ul { margin: 8px 0 8px 22px; padding: 0; }
+.elementor-mcp-skills-guide__body ol > li,
+.elementor-mcp-skills-guide__body ul > li { margin: 6px 0; }
+.elementor-mcp-skills-guide__body ul ul { margin-top: 4px; }
+.elementor-mcp-skills-guide__body code {
+	font-size: 12.5px;
+	padding: 1px 6px;
+	background: var(--mcp-gray-100);
+	border-radius: 4px;
+	color: var(--mcp-gray-800, #1f2937);
+}
+
+/* =========================================================================
+ * Templates page — "more coming" inline notice
+ * ========================================================================= */
+
+.elementor-mcp-coming-soon {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 12px 16px;
+	margin: 0 0 20px;
+	background: var(--mcp-primary-light, #eef2ff);
+	border: 1px solid var(--mcp-gray-200);
+	border-left: 3px solid var(--mcp-primary, #6366f1);
+	border-radius: var(--mcp-radius-md, 8px);
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--mcp-gray-700, #374151);
+}
+
+.elementor-mcp-coming-soon__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	color: var(--mcp-primary, #6366f1);
+	margin-top: 1px;
+}
+
+.elementor-mcp-coming-soon__text {
+	min-width: 0;
+}
+
+.elementor-mcp-coming-soon__text strong {
+	display: inline;
+	margin-right: 4px;
+	color: var(--mcp-gray-700, #374151);
+}
+
+/* =========================================================================
+ * Premium templates grid
+ * ========================================================================= */
+
+.elementor-mcp-template-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 20px;
+	margin-top: 8px;
+}
+
+.elementor-mcp-template-card {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--mcp-gray-200);
+	border-radius: var(--mcp-radius-md, 8px);
+	background: #fff;
+	overflow: hidden;
+	transition: border-color var(--mcp-transition);
+}
+
+.elementor-mcp-template-card:hover {
+	border-color: var(--mcp-gray-400);
+}
+
+.elementor-mcp-template-thumb {
+	aspect-ratio: 16 / 10;
+	background: var(--mcp-gray-100);
+	overflow: hidden;
+}
+
+.elementor-mcp-template-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.elementor-mcp-template-thumb--placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.elementor-mcp-template-thumb--placeholder svg {
+	width: 48px;
+	height: 48px;
+	fill: var(--mcp-gray-400);
+}
+
+.elementor-mcp-template-body {
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+.elementor-mcp-template-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.elementor-mcp-template-title {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--mcp-gray-700, #374151);
+	line-height: 1.4;
+}
+
+.elementor-mcp-template-desc {
+	margin: 0 0 14px;
+	font-size: 13px;
+	color: var(--mcp-gray-500);
+	line-height: 1.5;
+	flex: 1;
+}
+
+.elementor-mcp-template-actions {
+	margin-top: auto;
+	padding-top: 6px;
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.elementor-mcp-template-actions .button {
+	flex: 1;
+	min-width: 0;
+	justify-content: center;
+	white-space: nowrap;
 }
 
 /* =========================================================================

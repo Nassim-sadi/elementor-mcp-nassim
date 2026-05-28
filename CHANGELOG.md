@@ -2,6 +2,23 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [1.7.1]
+
+- New: **Premium Templates library** for Pro subscribers — apply ready-made Elementor page designs to a new draft page in one click, or import them into Elementor's Saved Templates library where they're insertable from any page's "Add Template" picker. Auto-synced from the EMCP Tools server with the same 24h cache pattern as Premium Prompts. Category filter pills + per-card thumbnail support. Accepts Elementor's native template export shape (`content` + `page_settings`) so designs exported from the editor's "Save as Template" flow drop straight in.
+- New: **EMCP Agent Skill download** for Pro subscribers — a pre-written Anthropic Agent Skill that teaches Claude (and any compatible AI client) exactly how to build, edit, and style Elementor pages through the MCP tools. New Skills admin tab with a one-click `emcp-skills.zip` download and per-client install guides for Claude Code, Claude Desktop, Cursor, Windsurf, Antigravity, and a universal fallback. Skill folder is bundled in the premium build only.
+- New: **Global "Upgrade to Pro" admin banner** on non-EMCP admin screens for non-Pro sites — gradient design with feature highlights, dismissible per-user (persists indefinitely via user-meta).
+- New: **"Read the Docs" & "Upgrade to Pro" header buttons** wired to the external docs and pricing pages at `https://emcp.msrbuilds.com`. Upgrade button hidden for sites with an active Pro license.
+- New: **"50+ more templates on the way"** inline notice on the Templates tab so Pro users know the library is actively expanding.
+- New: **`Elementor_MCP_Pro_Templates::import_to_library()`** — programmatic API for adding templates into Elementor's `elementor_library` CPT with the right `elementor_library_type` taxonomy term, `_elementor_data` meta, and optional `_elementor_page_settings` meta.
+- Changed: **Prompts tab hides the bundled 5 sample prompts when a Pro user has the premium library loaded** — the 50+ premium prompts already include the samples, so showing both was duplication. Fallback to samples still kicks in if a Pro user's bundle fetch fails (network blip, sync error).
+- Changed: **Stats bar prompt count reflects the active premium library** — Pro sites with a synced bundle see the real number (50 prompts) instead of the 5 bundled samples.
+- Changed: **All in-plugin "Upgrade to Pro" links now point at the external website pricing page** (`https://emcp.msrbuilds.com/pricing`) and open in a new tab — gives users the full plan comparison + FAQ rather than the Freemius in-admin pricing iframe.
+- Changed: **Admin menu** — added Templates and Skills submenus between Prompts and Changelog.
+- Changed: **Templates build script** on the server now auto-discovers thumbnails by slug from `public/screenshots/templates/` so template JSON files don't need to repeat the URL; case-insensitive match works for any of `.png`, `.jpg`, `.jpeg`, `.webp`, `.avif`.
+- Changed: **Reverted the Freemius pricing-screen wrapper** — the pricing iframe renders with its native Freemius styling again. Users land on the external website pricing page from any in-plugin Upgrade button instead.
+- Fixed: **Premium prompts/templates cache transients are scrubbed on uninstall** — prevents stale bundles persisting if the plugin is reinstalled later.
+- Fixed: **Upgrade-banner dismissal user-meta is scrubbed on uninstall** across every user.
+
 ## [1.7.0]
 
 - New: **Premium Prompts library is now live** for Pro subscribers — 50+ industry-specific landing-page prompts across 10 categories (Automotive, Food & Dining, General, Health & Wellness, Home Services, Lifestyle & Entertainment, Pets, Professional Services, Retail, Weddings). Auto-synced from the EMCP Tools server when a valid license is active. Free users continue to see the 5 bundled sample prompts plus an upgrade CTA.

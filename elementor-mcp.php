@@ -3,7 +3,7 @@
  * Plugin Name:       MCP Tools for Elementor
  * Plugin URI:        https://github.com/msrbuilds/elementor-mcpelementor-mcp
  * Description:       Extends the WordPress MCP Adapter to expose Elementor data, widgets, and page design tools as MCP tools for AI agents.
- * Version:           1.7.0
+ * Version:           1.7.1
  * Requires at least: 6.9
  * Tested up to:      6.9
  * Requires PHP:      8.0
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'ELEMENTOR_MCP_VERSION', '1.7.0' );
+define( 'ELEMENTOR_MCP_VERSION', '1.7.1' );
 define( 'ELEMENTOR_MCP_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ELEMENTOR_MCP_URL', plugin_dir_url( __FILE__ ) );
 define( 'ELEMENTOR_MCP_BASENAME', plugin_basename( __FILE__ ) );
@@ -45,19 +45,13 @@ if ( ! function_exists( 'emcp_pro_fs' ) ) {
                 'premium_slug'        => 'emcp-pro',
                 'type'                => 'plugin',
                 'public_key'          => 'pk_2b2a026d5c27655581635abcd4556',
-                // Two-build distribution: free + premium zips share this codebase.
-                // The premium zip includes a `.emcp-pro` marker file at the plugin
-                // root; Freemius reads this flag at init and labels the install
-                // accordingly. The release script handles both zips.
-                'is_premium'          => file_exists( dirname( __FILE__ ) . '/.emcp-pro' ),
-                'premium_suffix'      => 'Pro',
-                'has_premium_version' => true,
+                'is_premium'          => false,
                 'has_addons'          => false,
-                'has_paid_plans'      => true,
+                'has_paid_plans'      => false,
                 'is_org_compliant'    => false,
-				'has_affiliation'     => 'selected',
                 'menu'                => array(
                     'slug'           => 'elementor-mcp',
+                    'first-path'     => 'admin.php?page=elementor-mcp',
                     'support'        => false,
                 ),
             ) );
@@ -70,11 +64,20 @@ if ( ! function_exists( 'emcp_pro_fs' ) ) {
     emcp_pro_fs();
     // Signal that SDK was initiated.
     do_action( 'emcp_pro_fs_loaded' );
+}
 
-    // Freemius requires uninstall logic to live on its after_uninstall hook
-    // instead of WordPress's uninstall.php, so its own cleanup and ours run
-    // in the right order.
-    emcp_pro_fs()->add_action( 'after_uninstall', 'elementor_mcp_after_uninstall' );
+/**
+ * Canonical "Upgrade to Pro" URL — the external pricing page on the EMCP
+ * Tools website. Used by every upgrade CTA in the plugin admin so users
+ * land on the public pricing page (with full plan comparison + FAQ) rather
+ * than Freemius's bundled in-admin pricing iframe.
+ *
+ * @since 1.7.1
+ *
+ * @return string
+ */
+function elementor_mcp_upgrade_url(): string {
+    return 'https://emcp.msrbuilds.com/pricing';
 }
 
 /**
@@ -87,6 +90,9 @@ function elementor_mcp_after_uninstall() {
     delete_option( 'elementor_mcp_low_tool_mode' );
     delete_option( 'elementor_mcp_defaults_applied' );
     delete_transient( 'elementor_mcp_pro_prompts_bundle' );
+    delete_transient( 'elementor_mcp_pro_templates_bundle' );
+    // Drop the dismissal flag from every user.
+    delete_metadata( 'user', 0, 'elementor_mcp_upgrade_notice_dismissed', '', true );
 }
 
 /**
@@ -122,6 +128,96 @@ function elementor_mcp_sync_pro_prompts_ajax() {
             'fetched_at' => $bundle['fetched_at'],
         )
     );
+}
+
+/**
+ * AJAX handler for the Sync Library button on the Pro Templates page.
+ *
+ * @since 1.7.1
+ */
+function elementor_mcp_sync_pro_templates_ajax() {
+    check_ajax_referer( 'elementor_mcp_sync_pro_templates', 'nonce' );
+
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( array( 'message' => __( 'You do not have permission to sync templates.', 'elementor-mcp' ) ), 403 );
+    }
+
+    $bundle = Elementor_MCP_Pro_Templates::get_bundle( true );
+    if ( is_wp_error( $bundle ) ) {
+        wp_send_json_error( array( 'message' => $bundle->get_error_message() ), 400 );
+    }
+
+    $total = 0;
+    foreach ( $bundle['categories'] as $category ) {
+        $total += isset( $category['templates'] ) && is_array( $category['templates'] ) ? count( $category['templates'] ) : 0;
+    }
+
+    wp_send_json_success(
+        array(
+            'message'    => sprintf(
+                /* translators: %1$d: total templates, %2$d: total categories */
+                __( 'Synced %1$d templates across %2$d categories.', 'elementor-mcp' ),
+                $total,
+                count( $bundle['categories'] )
+            ),
+            'fetched_at' => $bundle['fetched_at'],
+        )
+    );
+}
+
+/**
+ * AJAX handler for applying a template to a new (or existing) page.
+ *
+ * @since 1.7.1
+ */
+function elementor_mcp_apply_pro_template_ajax() {
+    check_ajax_referer( 'elementor_mcp_apply_pro_template', 'nonce' );
+
+    if ( ! current_user_can( 'edit_pages' ) ) {
+        wp_send_json_error( array( 'message' => __( 'You do not have permission to create pages.', 'elementor-mcp' ) ), 403 );
+    }
+
+    $category_slug  = isset( $_POST['category_slug'] ) ? sanitize_key( wp_unslash( $_POST['category_slug'] ) ) : '';
+    $template_slug  = isset( $_POST['template_slug'] ) ? sanitize_key( wp_unslash( $_POST['template_slug'] ) ) : '';
+    $target_post_id = isset( $_POST['target_post_id'] ) ? absint( wp_unslash( $_POST['target_post_id'] ) ) : 0;
+
+    if ( '' === $category_slug || '' === $template_slug ) {
+        wp_send_json_error( array( 'message' => __( 'Missing category or template slug.', 'elementor-mcp' ) ), 400 );
+    }
+
+    $result = Elementor_MCP_Pro_Templates::apply_template( $category_slug, $template_slug, $target_post_id );
+    if ( is_wp_error( $result ) ) {
+        wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+    }
+
+    wp_send_json_success( $result );
+}
+
+/**
+ * AJAX handler for importing a template into Elementor's Saved Templates library.
+ *
+ * @since 1.7.1
+ */
+function elementor_mcp_import_pro_template_ajax() {
+    check_ajax_referer( 'elementor_mcp_import_pro_template', 'nonce' );
+
+    if ( ! current_user_can( 'edit_posts' ) ) {
+        wp_send_json_error( array( 'message' => __( 'You do not have permission to import templates.', 'elementor-mcp' ) ), 403 );
+    }
+
+    $category_slug = isset( $_POST['category_slug'] ) ? sanitize_key( wp_unslash( $_POST['category_slug'] ) ) : '';
+    $template_slug = isset( $_POST['template_slug'] ) ? sanitize_key( wp_unslash( $_POST['template_slug'] ) ) : '';
+
+    if ( '' === $category_slug || '' === $template_slug ) {
+        wp_send_json_error( array( 'message' => __( 'Missing category or template slug.', 'elementor-mcp' ) ), 400 );
+    }
+
+    $result = Elementor_MCP_Pro_Templates::import_to_library( $category_slug, $template_slug );
+    if ( is_wp_error( $result ) ) {
+        wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+    }
+
+    wp_send_json_success( $result );
 }
 /**
  * Recursively removes empty strings from enum arrays in a JSON Schema.
@@ -293,13 +389,20 @@ function elementor_mcp_init(): void {
 	if ( is_admin() ) {
 		require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-admin.php';
 
-		// Branded chrome around the Freemius pricing screen.
 		if ( function_exists( 'emcp_pro_fs' ) ) {
-			require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-pricing-page.php';
-			( new Elementor_MCP_Pricing_Page() )->init();
-
 			require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-pro-prompts.php';
 			add_action( 'wp_ajax_elementor_mcp_sync_pro_prompts', 'elementor_mcp_sync_pro_prompts_ajax' );
+
+			require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-pro-templates.php';
+			add_action( 'wp_ajax_elementor_mcp_sync_pro_templates', 'elementor_mcp_sync_pro_templates_ajax' );
+			add_action( 'wp_ajax_elementor_mcp_apply_pro_template', 'elementor_mcp_apply_pro_template_ajax' );
+			add_action( 'wp_ajax_elementor_mcp_import_pro_template', 'elementor_mcp_import_pro_template_ajax' );
+
+			require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-pro-skills.php';
+			( new Elementor_MCP_Pro_Skills() )->init();
+
+			require_once ELEMENTOR_MCP_DIR . 'includes/admin/class-upgrade-notice.php';
+			( new Elementor_MCP_Upgrade_Notice() )->init();
 		}
 	}
 
