@@ -336,26 +336,31 @@
 	}
 
 	/**
-	 * Connection tab — Copy to clipboard buttons.
+	 * Copy-to-clipboard buttons (Connection tab + every prompt card).
+	 *
+	 * Single delegated listener on document — avoids attaching 50+ listeners on the
+	 * Prompts page, which used to slow first paint and inflate memory.
 	 */
 	function initCopyButtons() {
-		document.querySelectorAll( '.elementor-mcp-copy-btn' ).forEach( function ( btn ) {
-			btn.addEventListener( 'click', function () {
-				var targetId = this.getAttribute( 'data-target' );
-				var source = document.getElementById( targetId );
-				if ( ! source ) {
-					return;
-				}
+		document.addEventListener( 'click', function ( e ) {
+			var btn = e.target.closest( '.elementor-mcp-copy-btn' );
+			if ( ! btn ) {
+				return;
+			}
+			var targetId = btn.getAttribute( 'data-target' );
+			var source = targetId ? document.getElementById( targetId ) : null;
+			if ( ! source ) {
+				return;
+			}
 
-				var copiedText = ( typeof elementorMcpAdmin !== 'undefined' && elementorMcpAdmin.copied ) ? elementorMcpAdmin.copied : 'Copied!';
+			var copiedText = ( typeof elementorMcpAdmin !== 'undefined' && elementorMcpAdmin.copied ) ? elementorMcpAdmin.copied : 'Copied!';
 
-				copyToClipboard( source.value ).then( function () {
-					var original = btn.textContent;
-					btn.textContent = copiedText;
-					setTimeout( function () {
-						btn.textContent = original;
-					}, 2000 );
-				} );
+			copyToClipboard( source.value ).then( function () {
+				var original = btn.textContent;
+				btn.textContent = copiedText;
+				setTimeout( function () {
+					btn.textContent = original;
+				}, 2000 );
 			} );
 		} );
 	}

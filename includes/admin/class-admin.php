@@ -260,18 +260,26 @@ class Elementor_MCP_Admin {
 			return;
 		}
 
+		$css_path = ELEMENTOR_MCP_DIR . 'assets/css/admin.css';
+		$js_path  = ELEMENTOR_MCP_DIR . 'assets/js/admin.js';
+
+		// Use filemtime in dev (when WP_DEBUG is on) so iterating on CSS/JS doesn't get stuck
+		// behind a cached file under the same plugin version. Falls back to ELEMENTOR_MCP_VERSION.
+		$css_ver = ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( $css_path ) ) ? filemtime( $css_path ) : ELEMENTOR_MCP_VERSION;
+		$js_ver  = ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( $js_path ) ) ? filemtime( $js_path ) : ELEMENTOR_MCP_VERSION;
+
 		wp_enqueue_style(
 			'elementor-mcp-admin',
 			ELEMENTOR_MCP_URL . 'assets/css/admin.css',
 			array(),
-			ELEMENTOR_MCP_VERSION
+			$css_ver
 		);
 
 		wp_enqueue_script(
 			'elementor-mcp-admin',
 			ELEMENTOR_MCP_URL . 'assets/js/admin.js',
 			array(),
-			ELEMENTOR_MCP_VERSION,
+			$js_ver,
 			true
 		);
 

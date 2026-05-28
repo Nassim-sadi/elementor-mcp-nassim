@@ -949,7 +949,8 @@
 	color: #e2e8f0 !important;
 	border-radius: 4px !important;
 	cursor: pointer;
-	transition: all var(--mcp-transition) !important;
+	/* Specific properties only — `transition: all` on 50+ buttons makes hover/focus jank. */
+	transition: background-color var(--mcp-transition), border-color var(--mcp-transition), color var(--mcp-transition) !important;
 }
 
 .elementor-mcp-copy-btn:hover {
@@ -1081,17 +1082,75 @@
 	color: var(--mcp-gray-500);
 }
 
-.elementor-mcp-pro-sync-btn {
+/* The element this targets is a <button class="button elementor-mcp-pro-sync-btn">.
+ * WP's core admin button rules are namespaced under `.wp-core-ui .button`
+ * (specificity 0,2,0), so we match that prefix to win the cascade without
+ * needing !important. .wp-core-ui is always present on the admin body. */
+.wp-core-ui button.elementor-mcp-pro-sync-btn,
+.wp-core-ui .elementor-mcp-pro-sync-btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
+	gap: 8px;
+	padding: 9px 18px;
+	min-height: 0;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1;
+	color: #fff;
+	background: var(--mcp-primary, #6366f1);
+	border: 1px solid var(--mcp-primary, #6366f1);
+	border-radius: var(--mcp-radius-sm, 6px);
+	box-shadow: none;
+	cursor: pointer;
+	text-shadow: none;
+	transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
 }
 
-.elementor-mcp-pro-sync-btn .dashicons {
+.wp-core-ui button.elementor-mcp-pro-sync-btn:hover,
+.wp-core-ui button.elementor-mcp-pro-sync-btn:focus,
+.wp-core-ui .elementor-mcp-pro-sync-btn:hover,
+.wp-core-ui .elementor-mcp-pro-sync-btn:focus {
+	background: var(--mcp-primary-hover, #4f46e5);
+	border-color: var(--mcp-primary-hover, #4f46e5);
+	color: #fff;
+	box-shadow: none;
+}
+
+.wp-core-ui button.elementor-mcp-pro-sync-btn:active,
+.wp-core-ui .elementor-mcp-pro-sync-btn:active {
+	transform: translateY(1px);
+	background: var(--mcp-primary-hover, #4f46e5);
+	border-color: var(--mcp-primary-hover, #4f46e5);
+	color: #fff;
+	box-shadow: none;
+}
+
+.wp-core-ui button.elementor-mcp-pro-sync-btn:focus-visible,
+.wp-core-ui .elementor-mcp-pro-sync-btn:focus-visible {
+	outline: 2px solid var(--mcp-primary, #6366f1);
+	outline-offset: 2px;
+}
+
+.wp-core-ui button.elementor-mcp-pro-sync-btn:disabled,
+.wp-core-ui button.elementor-mcp-pro-sync-btn[disabled],
+.wp-core-ui .elementor-mcp-pro-sync-btn:disabled {
+	opacity: 0.7;
+	cursor: progress;
+	background: var(--mcp-primary, #6366f1);
+	border-color: var(--mcp-primary, #6366f1);
+	color: #fff;
+}
+
+.wp-core-ui .elementor-mcp-pro-sync-btn .dashicons,
+.wp-core-ui .elementor-mcp-pro-sync-btn:hover .dashicons,
+.wp-core-ui .elementor-mcp-pro-sync-btn:focus .dashicons,
+.wp-core-ui .elementor-mcp-pro-sync-btn:active .dashicons {
 	font-size: 16px;
 	line-height: 1;
 	width: 16px;
 	height: 16px;
+	flex-shrink: 0;
+	color: #fff !important;
 }
 
 .elementor-mcp-pro-sync-btn .spin {
@@ -1121,7 +1180,7 @@
 	font-size: 13px;
 	color: var(--mcp-gray-700, #374151);
 	cursor: pointer;
-	transition: all var(--mcp-transition);
+	transition: background-color var(--mcp-transition), border-color var(--mcp-transition), color var(--mcp-transition);
 }
 
 .elementor-mcp-pro-filter:hover {
@@ -1443,15 +1502,21 @@
 	background: var(--mcp-white);
 	border: 1px solid var(--mcp-gray-200);
 	border-radius: var(--mcp-radius);
-	transition: all var(--mcp-transition);
+	/* Only transition cheap properties — `transition: all` + box-shadow + transform
+	 * on hover across 50+ cards causes paint/composite churn that feels like a hang. */
+	transition: border-color var(--mcp-transition);
 	display: flex;
 	flex-direction: column;
+	/* Skip rendering work for cards scrolled out of view. The browser still includes
+	 * them in the grid layout (intrinsic-size keeps the scrollbar stable), but doesn't
+	 * paint or run hover styles until they actually enter the viewport. Massive win
+	 * with 50+ cards. Supported in Chrome/Edge/Opera; gracefully ignored elsewhere. */
+	content-visibility: auto;
+	contain-intrinsic-size: 220px;
 }
 
 .elementor-mcp-prompt-card:hover {
 	border-color: var(--mcp-primary);
-	box-shadow: var(--mcp-shadow-md);
-	transform: translateY(-2px);
 }
 
 .elementor-mcp-prompt-header {

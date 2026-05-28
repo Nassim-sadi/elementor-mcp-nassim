@@ -84,6 +84,7 @@ class Elementor_MCP_Upgrade_Notice {
 			background: linear-gradient(120deg, #4338ca 0%, #6366f1 45%, #8b5cf6 100%);
 			box-shadow: 0 10px 30px -10px rgba(76, 29, 149, 0.45);
 			isolation: isolate;
+			width: calc(100% - 80px);
 		}
 		.emcp-upgrade-banner__shape {
 			position: absolute;
@@ -258,6 +259,15 @@ class Elementor_MCP_Upgrade_Notice {
 					<h2 class="emcp-upgrade-banner__title">
 						<?php esc_html_e( 'Branded landing pages in minutes — straight from your AI.', 'elementor-mcp' ); ?>
 					</h2>
+					<div class="emcp-upgrade-banner__actions">
+					<a class="emcp-upgrade-banner__btn emcp-upgrade-banner__btn--primary" href="<?php echo esc_url( $upgrade_url ); ?>" target="_blank" rel="noopener noreferrer">
+						<?php esc_html_e( 'Upgrade to Pro', 'elementor-mcp' ); ?>
+						<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M11 3a1 1 0 100 2h2.6L7.3 11.3a1 1 0 101.4 1.4L15 6.4V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" fill="currentColor"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 100-2H5z" fill="currentColor"/></svg>
+					</a>
+					<a class="emcp-upgrade-banner__btn emcp-upgrade-banner__btn--ghost" href="<?php echo esc_url( $docs_url ); ?>" target="_blank" rel="noopener noreferrer">
+						<?php esc_html_e( 'What\'s included', 'elementor-mcp' ); ?>
+					</a>
+				</div>
 				</div>
 
 				<ul class="emcp-upgrade-banner__features">
@@ -291,15 +301,7 @@ class Elementor_MCP_Upgrade_Notice {
 					</li>
 				</ul>
 
-				<div class="emcp-upgrade-banner__actions">
-					<a class="emcp-upgrade-banner__btn emcp-upgrade-banner__btn--primary" href="<?php echo esc_url( $upgrade_url ); ?>" target="_blank" rel="noopener noreferrer">
-						<?php esc_html_e( 'Upgrade to Pro', 'elementor-mcp' ); ?>
-						<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M11 3a1 1 0 100 2h2.6L7.3 11.3a1 1 0 101.4 1.4L15 6.4V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" fill="currentColor"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 100-2H5z" fill="currentColor"/></svg>
-					</a>
-					<a class="emcp-upgrade-banner__btn emcp-upgrade-banner__btn--ghost" href="<?php echo esc_url( $docs_url ); ?>" target="_blank" rel="noopener noreferrer">
-						<?php esc_html_e( 'What\'s included', 'elementor-mcp' ); ?>
-					</a>
-				</div>
+				
 			</div>
 		</div>
 
