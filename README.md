@@ -1,9 +1,9 @@
 # MCP Tools for Elementor
 
-[![Version](https://img.shields.io/badge/version-1.7.2-blue.svg)](https://github.com/msrbuilds/elementor-mcp/releases)
-[![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE)
-[![PHP](https://img.shields.io/badge/PHP-%3E%3D7.4-8892BF.svg)](https://php.net)
-[![WordPress](https://img.shields.io/badge/WordPress-%3E%3D6.8-21759B.svg)](https://wordpress.org)
+[![Version](https://img.shields.io/github/v/release/msrbuilds/elementor-mcp?label=version&color=blue)](https://github.com/msrbuilds/elementor-mcp/releases)
+[![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-%3E%3D8.0-8892BF.svg)](https://php.net)
+[![WordPress](https://img.shields.io/badge/WordPress-%3E%3D6.9-21759B.svg)](https://wordpress.org)
 [![Elementor](https://img.shields.io/badge/Elementor-%3E%3D3.20-92003B.svg)](https://elementor.com)
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20118-orange.svg)](#available-tools)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -51,10 +51,10 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 | Dependency | Version |
 |---|---|
-| WordPress | >= 6.8 |
-| PHP | >= 7.4 |
+| WordPress | >= 6.9 |
+| PHP | >= 8.0 |
 | Elementor | >= 3.20 (container support required) |
-| WordPress MCP Adapter | Latest |
+| WordPress MCP Adapter | Bundled (no separate install) |
 | WordPress Abilities API | Bundled in WP 6.9+, or via Composer |
 
 ## Installation
