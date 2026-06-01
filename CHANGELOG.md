@@ -2,6 +2,11 @@
 
 All notable changes to MCP Tools for Elementor are documented in this file.
 
+## [1.8.2]
+
+- New: **npx proxy configs in the Connection tab.** The "Generate Configs" flow now emits ready-to-copy npx runner blocks for Claude Code and Claude Desktop (`npx -y @msrbuilds/emcp-proxy@latest`, with the `WP_*` env + `MCP_PROTOCOL_VERSION`), grouped under "Remote WordPress — npx runner (recommended)". The bundled-proxy-file cards remain under "Local WordPress" for same-machine setups. This closes the gap where the only generated proxy config used this server's absolute filesystem path, which a remote AI client (which launches the proxy locally) can't reach. Touches `includes/admin/views/page-connection.php` + `assets/js/admin.js`.
+- Note: the npx runner depends on the `@msrbuilds/emcp-proxy` npm package (published independently; `@latest` resolves to a working build).
+
 ## [1.8.1]
 
 - Fixed: **Remote-proxy documentation.** Clarified that the Node.js proxy is launched by the AI client as a **local subprocess**, so for remote/shared-hosting sites its file path must point to the **client** machine — not to `bin/mcp-proxy.mjs` inside `wp-content/plugins/...` on the server, which the client can't reach. A user reported the old docs (which showed a server-side path under a "remote WordPress" heading) led to exactly this misread. Updated the Connection tab note (`includes/admin/views/page-connection.php`), `README.md`, and `mcp-config-examples.json`.

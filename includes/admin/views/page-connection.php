@@ -203,7 +203,37 @@ $elementor_mcp_server_enabled = class_exists( 'Elementor_MCP_Plugin' )
 
 			<h3><?php esc_html_e( 'Step 2: Node.js Proxy Configs (Recommended)', 'elementor-mcp' ); ?></h3>
 			<p class="description">
-				<?php esc_html_e( 'These configs use the bundled Node.js proxy which handles session management and protocol version compatibility automatically. Requires Node.js 18+ installed on the machine running your AI client.', 'elementor-mcp' ); ?>
+				<?php esc_html_e( 'These configs use a Node.js proxy that handles session management and protocol version compatibility automatically. Requires Node.js 18+ on the machine running your AI client.', 'elementor-mcp' ); ?>
+			</p>
+
+			<h4 style="margin-bottom: 4px;"><?php esc_html_e( 'Remote WordPress — npx runner (recommended)', 'elementor-mcp' ); ?></h4>
+			<p class="description">
+				<?php esc_html_e( 'Best for remote sites and shared hosting. npx fetches the proxy on demand and runs it locally, so there is no file to copy or keep in sync as the plugin updates.', 'elementor-mcp' ); ?>
+			</p>
+
+			<!-- Claude Code (npx) -->
+			<div class="elementor-mcp-config-card">
+				<div class="elementor-mcp-config-card-header">
+					<span class="elementor-mcp-config-card-title"><?php esc_html_e( 'Claude Code', 'elementor-mcp' ); ?> <span style="font-weight: 400; color: var(--mcp-gray-400);">&mdash; .mcp.json</span></span>
+					<button type="button" class="button elementor-mcp-copy-btn" data-target="claude-code-npx"><?php esc_html_e( 'Copy', 'elementor-mcp' ); ?></button>
+				</div>
+				<pre><code id="elementor-mcp-claude-code-npx-code"></code></pre>
+				<textarea id="claude-code-npx" class="elementor-mcp-copy-source"></textarea>
+			</div>
+
+			<!-- Claude Desktop (npx) -->
+			<div class="elementor-mcp-config-card">
+				<div class="elementor-mcp-config-card-header">
+					<span class="elementor-mcp-config-card-title"><?php esc_html_e( 'Claude Desktop', 'elementor-mcp' ); ?> <span style="font-weight: 400; color: var(--mcp-gray-400);">&mdash; claude_desktop_config.json</span></span>
+					<button type="button" class="button elementor-mcp-copy-btn" data-target="claude-desktop-npx"><?php esc_html_e( 'Copy', 'elementor-mcp' ); ?></button>
+				</div>
+				<pre><code id="elementor-mcp-claude-desktop-npx-code"></code></pre>
+				<textarea id="claude-desktop-npx" class="elementor-mcp-copy-source"></textarea>
+			</div>
+
+			<h4 style="margin-bottom: 4px;"><?php esc_html_e( 'Local WordPress — bundled proxy file', 'elementor-mcp' ); ?></h4>
+			<p class="description">
+				<?php esc_html_e( 'Use this when WordPress runs on the same machine as your AI client. The path below points to bin/mcp-proxy.mjs in this installation.', 'elementor-mcp' ); ?>
 			</p>
 
 			<!-- Claude Code (Proxy) -->
@@ -227,23 +257,9 @@ $elementor_mcp_server_enabled = class_exists( 'Elementor_MCP_Plugin' )
 			</div>
 
 			<p class="description">
-				<strong><?php esc_html_e( 'Local WordPress:', 'elementor-mcp' ); ?></strong>
-				<?php esc_html_e( 'The path above already points to bin/mcp-proxy.mjs in this installation — no change needed.', 'elementor-mcp' ); ?>
+				<strong><?php esc_html_e( 'Remote sites:', 'elementor-mcp' ); ?></strong>
+				<?php esc_html_e( 'The path in the two configs above points to this server\'s filesystem and will not work from a remote AI client, which launches the proxy locally. Use the npx configs above instead, or copy bin/mcp-proxy.mjs to your local machine and point "args" at that local path.', 'elementor-mcp' ); ?>
 			</p>
-			<p class="description">
-				<strong><?php esc_html_e( 'Remote WordPress (e.g. shared hosting):', 'elementor-mcp' ); ?></strong>
-				<?php esc_html_e( 'Your AI client launches this proxy as a local subprocess, so the file must exist on the machine running the client — not on the server. The path above points to the server and will not work remotely. Use one of these instead:', 'elementor-mcp' ); ?>
-			</p>
-			<ul class="description" style="list-style: disc; margin-left: 1.5em;">
-				<li><?php
-					printf(
-						/* translators: %s: npx command code */
-						esc_html__( 'Recommended — zero-install npx runner (nothing to keep in sync): set %s and keep the same env block.', 'elementor-mcp' ),
-						'<code>"command": "npx", "args": ["-y", "@msrbuilds/emcp-proxy@latest"]</code>'
-					);
-				?></li>
-				<li><?php esc_html_e( 'Or copy bin/mcp-proxy.mjs from the plugin ZIP to your local machine and point "args" at that local path. Re-copy it after plugin updates to pick up proxy fixes.', 'elementor-mcp' ); ?></li>
-			</ul>
 
 		</div>
 

@@ -204,6 +204,51 @@
 				JSON.stringify( claudeDesktopProxyConfig, null, 4 )
 			);
 
+			// Claude Code npx config (.mcp.json) — zero-install runner, best for remote sites.
+			var claudeCodeNpxConfig = {
+				mcpServers: {
+					'elementor-mcp': {
+						type: 'stdio',
+						command: 'npx',
+						args: [ '-y', '@msrbuilds/emcp-proxy@latest' ],
+						env: {
+							WP_URL: siteUrl,
+							WP_USERNAME: rawUsername,
+							WP_APP_PASSWORD: rawAppPassword,
+							MCP_PROTOCOL_VERSION: '2024-11-05',
+							MCP_LOG_FILE: logFilePath
+						}
+					}
+				}
+			};
+			setConfigBlock(
+				'elementor-mcp-claude-code-npx-code',
+				'claude-code-npx',
+				JSON.stringify( claudeCodeNpxConfig, null, 4 )
+			);
+
+			// Claude Desktop npx config — same but without type field.
+			var claudeDesktopNpxConfig = {
+				mcpServers: {
+					'elementor-mcp': {
+						command: 'npx',
+						args: [ '-y', '@msrbuilds/emcp-proxy@latest' ],
+						env: {
+							WP_URL: siteUrl,
+							WP_USERNAME: rawUsername,
+							WP_APP_PASSWORD: rawAppPassword,
+							MCP_PROTOCOL_VERSION: '2024-11-05',
+							MCP_LOG_FILE: logFilePath
+						}
+					}
+				}
+			};
+			setConfigBlock(
+				'elementor-mcp-claude-desktop-npx-code',
+				'claude-desktop-npx',
+				JSON.stringify( claudeDesktopNpxConfig, null, 4 )
+			);
+
 			// Show the HTTP config blocks container.
 			var configsDiv = document.getElementById( 'elementor-mcp-http-configs' );
 			if ( configsDiv ) {
