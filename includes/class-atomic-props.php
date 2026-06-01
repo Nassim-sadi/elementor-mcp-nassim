@@ -237,11 +237,44 @@ class Elementor_MCP_Atomic_Props {
 	}
 
 	/**
-	 * Checks whether Elementor 4.0+ atomic elements are available.
+	 * Checks whether Elementor atomic (V4) elements are available.
+	 *
+	 * Detection is not version-number based. Elementor ships the atomic / V4
+	 * editor as opt-in experiments *while the core `ELEMENTOR_VERSION` constant
+	 * still reports a 3.x value* (e.g. 3.31.5 with the "e_opt_in_v4_page"
+	 * experiment active even though the plugin markets itself as 4.x). Gating on
+	 * `version_compare( ELEMENTOR_VERSION, '4.0.0', '>=' )` therefore returns
+	 * false on exactly the sites that are running atomic, so the atomic tools
+	 * never register and content writes fall back to the classic format (which
+	 * does not persist on an atomic page).
+	 *
+	 * So: treat atomic as supported when an atomic experiment is active, OR the
+	 * atomic widgets module is loaded, OR the version constant is genuinely 4.0+.
 	 *
 	 * @return bool True if atomic elements are supported.
 	 */
 	public static function is_atomic_supported(): bool {
+		// Experiment flags (any active ⇒ atomic editor is in play). Guarded with
+		// method_exists so we never fatal on Elementor builds (or test stubs)
+		// that don't expose the experiments API.
+		if ( class_exists( '\Elementor\Plugin' ) && method_exists( '\Elementor\Plugin', 'instance' ) ) {
+			$elementor = \Elementor\Plugin::instance();
+			if ( isset( $elementor->experiments ) && is_object( $elementor->experiments )
+				&& method_exists( $elementor->experiments, 'is_feature_active' ) ) {
+				foreach ( array( 'e_opt_in_v4_page', 'e_atomic_elements', 'atomic_widgets', 'editor_v4' ) as $feature ) {
+					if ( $elementor->experiments->is_feature_active( $feature ) ) {
+						return true;
+					}
+				}
+			}
+		}
+
+		// Atomic widgets module present (loaded independently of the version string).
+		if ( class_exists( '\Elementor\Modules\AtomicWidgets\Module' ) ) {
+			return true;
+		}
+
+		// Genuine 4.0+ core (kept as a forward-compatible fallback).
 		return defined( 'ELEMENTOR_VERSION' ) && version_compare( ELEMENTOR_VERSION, '4.0.0', '>=' );
 	}
 }
