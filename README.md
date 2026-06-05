@@ -1,4 +1,11 @@
-# <img src="assets/img/icon-sm.png" height="36" align="middle" alt="EMCP Tools logo"> MCP Tools for Elementor
+<table align="center" border="0">
+  <tr>
+    <td valign="middle"><img src="assets/img/icon-sm.png" height="48" alt="EMCP Tools logo"></td>
+    <td valign="middle"><h1>MCP Tools for Elementor</h1></td>
+  </tr>
+</table>
+
+<div align="center">
 
 [![Version](https://img.shields.io/github/v/release/msrbuilds/elementor-mcp?label=version&color=blue)](https://github.com/msrbuilds/elementor-mcp/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green.svg)](LICENSE)
@@ -9,6 +16,8 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub Issues](https://img.shields.io/github/issues/msrbuilds/elementor-mcp)](https://github.com/msrbuilds/elementor-mcp/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/msrbuilds/elementor-mcp?style=social)](https://github.com/msrbuilds/elementor-mcp)
+
+</div>
 
 A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter) to expose Elementor data, widgets, and page design tools as [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) tools. This enables AI agents like Claude, Cursor, and other MCP-compatible clients to create and manipulate Elementor page designs programmatically.
 
