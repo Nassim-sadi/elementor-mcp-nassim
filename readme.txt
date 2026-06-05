@@ -3,7 +3,7 @@ Contributors: mianshahzadraza
 Tags: elementor, mcp, ai, page-builder, automation
 Requires at least: 6.9
 Tested up to: 7.0
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -155,6 +155,19 @@ The plugin enforces WordPress capability checks on every tool. Read operations r
 2. Connection configuration page with copy-paste configs.
 
 == Changelog ==
+
+= 2.2.0 =
+* Performance: Leaner widget tool schemas. Each per-widget convenience tool now publishes a focused set of core parameters instead of a fully-enumerated schema, cutting the MCP tools/list payload (re-sent on every request) by roughly a third with no loss of capability — every other setting still passes through to Elementor and stays discoverable via get-widget-schema.
+* Fixed: get-widget-schema now returns the complete control set, and valid styling is no longer rejected. Outside the editor (WP-CLI/REST) Elementor strips a widget's style controls (typography, colours, alignment) from get_controls(); the generator now opts into the full set the way Elementor's own CSS generator does, and settings validation is non-fatal so unknown keys pass through to Elementor instead of aborting the insert.
+* Fixed: Low-tools mode is now a true override — it exposes exactly the curated essentials regardless of your per-tool toggles (which are preserved), the Tools grid greys out to show the paused state, and saving now shows a "Settings saved" confirmation.
+* Fixed: add-atomic-paragraph saved blank paragraphs (#56) — content was written to the wrong prop (text instead of the e-paragraph "paragraph" prop). Also fixed a sibling where add-atomic-youtube wrote the URL to "url" instead of the e-youtube "source" prop.
+* Fixed: list-global-classes failed when called with no arguments (#57). Resolving the whole registry aborted if one class had an unexpected structure; each class is now resolved defensively so one bad entry can't break enumeration of the rest.
+* Security: Custom CSS can no longer break out of its <style> block (F-004) — add-custom-css now neutralises the </style> end tag with a bypass-proof loop while preserving all valid CSS (combinators, media ranges, content strings).
+* Security: SVG sanitiser closes a multiline event-handler bypass (F-008) — inline on*= handlers whose quoted value spanned a line break could slip past the regex.
+* Security: The admin no longer localises the absolute server proxy path into page JavaScript (F-020); it exposes only the filename.
+* Fixed: Page saves are more robust in CLI/REST (F-005) — the direct-meta fallback now runs when Elementor's document save returns null, not only false.
+* Performance: list-pages and list-templates now set no_found_rows (F-017/F-018).
+* Developer: PHPUnit suite green again (448 tests); get_all_tools() cross-checks the admin catalog against the live ability registry to catch drift.
 
 = 2.1.0 =
 * New: PHP Code Snippets (Sandbox). A free, capability-gated way for an AI agent to author server-side PHP behind a hard human-approval gate. The AI can validate code and create drafts over MCP, but a draft never runs until an admin activates it in EMCP Tools > Sandbox (there is no "activate" tool). Every snippet passes a static parse + security scan (blocks exec/eval/backticks/variable-functions/file-writes/network/destructive SQL/obfuscation) before it can be saved or activated; activation writes a sha256-verified file that runs inside try/catch with a shutdown guard that auto-deactivates a snippet that fatals. Six tools (validate/create/update/get/list/delete). Off by default.
