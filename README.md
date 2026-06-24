@@ -29,7 +29,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 ## Features
 
-- **A focused MCP toolset** covering the full Elementor page-building workflow — and, as of v3.0.0, growing beyond Elementor into general WordPress content management. As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment (the v3.0.0 numbers below add the 8 WordPress Content tools + 3 surfaced core abilities + 2 Settings tools = +13, all enabled by default — estimates pending a fresh live count):
+- **A focused MCP toolset** covering the full Elementor page-building workflow — and, as of v3.0.0, growing beyond Elementor into general WordPress content and site management (content, settings, plugins, and themes). As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment (the v3.0.0 numbers below add the 8 WordPress Content tools + 3 surfaced core abilities + 2 Settings tools + 13 Plugins & Themes tools, of which 4 read/search tools are enabled by default and 9 mutation tools ship disabled-by-default — estimates pending a fresh live count):
   - ~57 tools — free Elementor only
   - ~71 tools — free Elementor + Elementor 4.0 atomic elements
   - ~83 tools — with Elementor Pro
@@ -37,6 +37,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
   - ~21 of these (SEO & Accessibility, Widget Builder, PHP Snippets) ship **disabled-by-default**, so the typical active surface is smaller
 - **WordPress Content (beyond Elementor)** — Create and manage posts, pages, and any custom post type — content, status, taxonomy terms, custom fields, and featured images — via MCP, without touching Elementor data. Built on WP core; every post carries an `is_elementor` flag that steers agents to the Elementor tools for builder pages
 - **WordPress Settings (beyond Elementor, domain 2)** — Read and batch-update core WordPress settings (general/reading/writing/discussion/media/permalinks) over MCP. Curated allowlist only — no arbitrary option access; `admin_email` is read-only; permalink changes auto-flush rewrite rules. `manage_options`. (v3.0.0)
+- **Plugins & Themes (beyond Elementor, domain 3)** — Discover, install (wordpress.org only), update, activate/deactivate, and delete plugins and themes over MCP. Strong guardrails (EMCP Tools + Elementor protected; per-op capability gating; direct-filesystem-only); the 9 mutation tools ship disabled-by-default. `manage_options`-class capabilities. (v3.0.0)
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
@@ -279,6 +280,26 @@ Core WordPress settings management over MCP — curated allowlist of general/rea
 |---|---|
 | `get-settings` | Read allowlisted WordPress settings across all groups; doubles as discovery (read-only, `manage_options`) |
 | `update-settings` | Batch-update allowlisted settings; rejects reported in `skipped[]`; permalink changes auto-flush rewrite rules (`manage_options`) |
+
+### WordPress Plugins & Themes — beyond Elementor, domain 3 (13 tools, v3.0.0)
+
+Discover and manage WordPress plugins and themes over MCP — built on WP core upgrader APIs. Installs are wordpress.org-only (by slug; no arbitrary URLs). Guardrails: EMCP Tools and Elementor can never be deactivated or deleted; the active plugin/theme is protected from deletion; install/update/delete require a directly-writable filesystem (clear error instead of an FTP hang). The 4 read/search tools are **enabled by default**; the **9 mutation tools ship disabled-by-default** (admin opts in on the Tools tab).
+
+| Tool | Description |
+|---|---|
+| `list-plugins` | List installed plugins with active/inactive status, version, update-available flag, and protected marker (read-only, `activate_plugins`) |
+| `search-plugins` | Search the wordpress.org plugin directory by keyword — returns slug, name, version, rating, requirements (read-only, `install_plugins`) |
+| `install-plugin` | Install a plugin from wordpress.org by slug; optionally activate after install (`install_plugins`) |
+| `activate-plugin` | Activate an installed plugin by file path or slug (`activate_plugins`) |
+| `deactivate-plugin` | Deactivate a plugin; refuses to deactivate EMCP Tools or Elementor (`activate_plugins`) |
+| `update-plugin` | Update an installed plugin to the latest wordpress.org version; reports up-to-date when no update is pending (`update_plugins`) |
+| `delete-plugin` | Permanently delete an inactive, unprotected plugin (`delete_plugins`) |
+| `list-themes` | List installed themes with active status, version, update-available flag, and whether it is protected (read-only, `switch_themes`) |
+| `search-themes` | Search the wordpress.org theme directory by keyword (read-only, `install_themes`) |
+| `install-theme` | Install a theme from wordpress.org by slug (`install_themes`) |
+| `switch-theme` | Switch the active theme by stylesheet slug (`switch_themes`) |
+| `update-theme` | Update an installed theme to the latest wordpress.org version (`update_themes`) |
+| `delete-theme` | Permanently delete an inactive, unprotected theme (`delete_themes`) |
 
 ### Page Management (5 tools)
 

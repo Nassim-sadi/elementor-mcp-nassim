@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~70 MCP tools (scales with environment). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; and (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings.
+MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~70 MCP tools (scales with environment). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings; and (5) **domain 3 — 13 WordPress Plugins & Themes tools** (discover/install/update/activate/delete plugins and themes; wordpress.org-only; writes disabled-by-default).
 
 ## Companion projects (sibling folders, edit from here)
 
@@ -15,17 +15,17 @@ MCP Tools for Elementor Plugin — a WordPress plugin that extends the official 
 
 When editing premium-prompts behavior, the plugin code (`includes/admin/class-pro-prompts.php`) and the website's API endpoint (`website/src/pages/api/emcp/prompts.json.ts` per the PLAN) must stay in sync via the contract in `docs/PREMIUM_PROMPTS_API.md`.
 
-**Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, the catalog-backed widget consolidation, the namespace rename, and the two beyond-Elementor domains (8 WordPress Content tools + 2 WordPress Settings tools), all shipping together as the single 3.0.0 release.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, 8 general-WordPress content tools, 2 WordPress settings tools, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
+**Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, the catalog-backed widget consolidation, the namespace rename, and the three beyond-Elementor domains (8 WordPress Content tools + 2 WordPress Settings tools + 13 WordPress Plugins & Themes tools), all shipping together as the single 3.0.0 release.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, 8 general-WordPress content tools, 2 WordPress settings tools, 13 plugins & themes tools, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
 
-**Tool counts by configuration (v3.0.0 — the beyond-Elementor surface adds the 8 Content tools + 3 surfaced `core/*` abilities + 2 Settings tools = +13 over the widget-consolidation base, all enabled-by-default):**
-- Free Elementor only: **~57** (44 base + 13)
-- Free Elementor + Elementor 4.0+ atomic: **~71** (58 base + 13)
-- With Elementor Pro: **~83** (70 base + 13)
-- With Elementor Pro + Elementor 4.0+: **~97** (84 base + 13) — the +11 (Content + `core/*`) portion was **measured live** at 95 (Pro + Elementor 4.1); the +2 Settings tools bring it to ~97 pending a fresh live count
-- With Pro + WooCommerce + Elementor 4.0+: **~97** — WooCommerce widgets are reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
+**Tool counts by configuration (v3.0.0 — the beyond-Elementor surface adds the 8 Content tools + 3 surfaced `core/*` abilities + 2 Settings tools + 13 Plugins & Themes tools, of which 4 read/search tools are enabled-by-default and 9 mutation tools ship disabled-by-default — estimates pending a fresh live count):**
+- Free Elementor only: **~61** (44 base + 13 Content/core*/Settings + 4 P&T reads enabled)
+- Free Elementor + Elementor 4.0+ atomic: **~75** (58 base + 13 + 4)
+- With Elementor Pro: **~87** (70 base + 13 + 4)
+- With Elementor Pro + Elementor 4.0+: **~101** (84 base + 13 + 4) — estimates pending a fresh live `tools/list` with the Plugins & Themes domain
+- With Pro + WooCommerce + Elementor 4.0+: **~101** — WooCommerce widgets are reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
 - Low-tools mode (any config): still available but largely obsolete — the consolidation already keeps the surface well under common client caps.
 
-> The Pro + Elementor 4.x config was measured live at **95 tools** with the Content release (84 v3.0.0 widget base + 8 Content + 3 `core/*`); the 2 Settings tools added in the same 3.0.0 line bring the expected total to **~97**, to be confirmed with a fresh live `tools/list`. Of the registered total, ~21 still ship disabled-by-default (SEO/A11y, Widget Builder, PHP Snippets); the Content tools, Settings tools, and `core/*` abilities are all enabled by default.
+> The beyond-Elementor surface in v3.0.0 adds: 8 Content + 3 `core/*` + 2 Settings + 13 Plugins & Themes. Of those 26, the 9 Plugins & Themes mutation tools ship disabled-by-default (admin opts in on the Tools tab), so the net enabled-by-default addition is +17. The separate 21 disabled-by-default group (SEO/A11y, Widget Builder, PHP Snippets) is unchanged. All counts above are estimates pending a fresh live `tools/list` after the Plugins & Themes domain is deployed.
 
 > **These are REGISTERED counts.** Three groups ship **disabled-by-default** — SEO & Accessibility (**7**, Pro), Widget Builder (**8**, Pro), and PHP Snippets / Sandbox (**6**, free) = **21** tools registered-but-off. So the typical **active** surface is ~21 smaller until a user enables them on the Tools tab (e.g. Pro + Elementor 4.0+ ≈ **63** active by default).
 >
@@ -152,7 +152,7 @@ The MCP Adapter converts ability names like `emcp-tools/list-widgets` to tool na
 | Code snippets (create) | `manage_options` + `unfiltered_html` |
 | Code snippets (list) | `manage_options` |
 
-## All Implemented Tools (up to ~58 — see counts above)
+## All Implemented Tools (up to ~101 with Pro + Elementor 4.0+ — see counts above)
 
 ### P0 — Query/Discovery (7 read-only)
 
@@ -182,6 +182,32 @@ The plugin's first step beyond Elementor: general WordPress content management o
 | `emcp-tools/set-post-terms` | Assign taxonomy terms to a post |
 
 Additionally, WordPress core's three read-only context abilities — `core/get-site-info`, `core/get-user-info`, `core/get-environment-info` — are now **surfaced on the EMCP server** so agents can read site/user/environment context without a separate connection.
+
+### WordPress Plugins & Themes — domain 3 (13 tools, v3.0.0)
+
+Discover and manage WordPress plugins and themes over MCP — built on WP core upgrader APIs (`get_plugins`, `activate_plugin`, `delete_plugins`, `Plugin_Upgrader`, `Theme_Upgrader`, `plugins_api`, `themes_api`, `switch_theme`, etc.). Installs are **wordpress.org-only** (by slug; no arbitrary URLs accepted). All 13 tools are enabled-by-default only for the 4 read/search tools; the **9 mutation tools ship disabled-by-default** (admin opts in on the Tools tab).
+
+**Safety model:**
+- `EMCP_Tools_Package_Guard` — shared guard class; protected-plugin list (`EMCP_TOOLS_BASENAME`, `elementor/elementor.php`, `elementor-pro/elementor-pro.php`); active-plugin/active-theme checks; direct-filesystem gate (`get_filesystem_method()` must return `'direct'` — otherwise a clean WP_Error is returned instead of hanging on an FTP-credential prompt); on-demand wp-admin upgrader includes; quiet `Automatic_Upgrader_Skin` (messages captured, not echoed)
+- Per-op capability gating: `activate_plugins` for list/activate/deactivate; `install_plugins`/`install_themes` for install/search; `update_plugins`/`update_themes` for update; `delete_plugins`/`delete_themes` for delete; `switch_themes` for list-themes/switch-theme
+- EMCP Tools, Elementor, and Elementor Pro can **never** be deactivated or deleted via MCP
+- The active plugin/theme is protected from delete
+
+| Ability Name | Purpose |
+|---|---|
+| `emcp-tools/list-plugins` | List installed plugins with active/inactive status, version, update-available flag, and protected marker (read-only) |
+| `emcp-tools/search-plugins` | Search the wordpress.org plugin directory by keyword — returns slug, name, version, rating, requirements (read-only) |
+| `emcp-tools/install-plugin` | Install a plugin from wordpress.org by slug; optionally activate after install |
+| `emcp-tools/activate-plugin` | Activate an installed plugin by file path or folder slug |
+| `emcp-tools/deactivate-plugin` | Deactivate a plugin; refuses EMCP Tools and Elementor |
+| `emcp-tools/update-plugin` | Update an installed plugin to the latest wordpress.org version; reports up-to-date when no update is pending |
+| `emcp-tools/delete-plugin` | Permanently delete an inactive, unprotected plugin (direct FS required) |
+| `emcp-tools/list-themes` | List installed themes with active status, version, update-available flag, and protected marker (read-only) |
+| `emcp-tools/search-themes` | Search the wordpress.org theme directory by keyword (read-only) |
+| `emcp-tools/install-theme` | Install a theme from wordpress.org by slug (direct FS required) |
+| `emcp-tools/switch-theme` | Switch the active theme by stylesheet slug |
+| `emcp-tools/update-theme` | Update an installed theme to the latest wordpress.org version (direct FS required) |
+| `emcp-tools/delete-theme` | Permanently delete an inactive, unprotected theme (direct FS required) |
 
 ### P1 — Page CRUD (5 tools)
 
