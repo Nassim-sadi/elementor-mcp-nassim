@@ -153,7 +153,7 @@ class EMCP_Tools_Theme_Abilities {
 	}
 
 	// -------------------------------------------------------------------
-	// install-theme (stub — full implementation added in lifecycle task)
+	// install-theme
 	// -------------------------------------------------------------------
 
 	private function register_install_theme(): void {
@@ -183,8 +183,51 @@ class EMCP_Tools_Theme_Abilities {
 		);
 	}
 
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_install_theme( $input ) {
+		$slug = sanitize_key( $input['slug'] ?? '' );
+		if ( '' === $slug ) {
+			return new \WP_Error( 'missing_params', __( 'A theme "slug" is required.', 'emcp-tools' ) );
+		}
+		$activate = ! empty( $input['activate'] );
+		if ( $activate && ! current_user_can( 'switch_themes' ) ) {
+			return new \WP_Error( 'cannot_switch', __( 'You cannot switch themes.', 'emcp-tools' ) );
+		}
+		$ready = EMCP_Tools_Package_Guard::filesystem_ready();
+		if ( is_wp_error( $ready ) ) {
+			return $ready;
+		}
+		$api = themes_api( 'theme_information', array( 'slug' => $slug, 'fields' => array( 'sections' => false ) ) );
+		if ( is_wp_error( $api ) ) {
+			return $api;
+		}
+		$skin     = EMCP_Tools_Package_Guard::make_skin();
+		$upgrader = new \Theme_Upgrader( $skin );
+		$result   = $upgrader->install( $api->download_link );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		if ( false === $result || null === $result ) {
+			return new \WP_Error( 'install_failed', __( 'Theme installation failed.', 'emcp-tools' ) );
+		}
+		$activated = false;
+		if ( $activate ) {
+			switch_theme( $slug );
+			$activated = true;
+		}
+		return array(
+			'installed'  => true,
+			'activated'  => $activated,
+			'stylesheet' => $slug,
+			'messages'   => EMCP_Tools_Package_Guard::skin_messages( $skin ),
+		);
+	}
+
 	// -------------------------------------------------------------------
-	// switch-theme (stub — full implementation added in lifecycle task)
+	// switch-theme
 	// -------------------------------------------------------------------
 
 	private function register_switch_theme(): void {
@@ -208,8 +251,25 @@ class EMCP_Tools_Theme_Abilities {
 		);
 	}
 
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_switch_theme( $input ) {
+		$theme = $this->resolve_theme( $input['stylesheet'] ?? '' );
+		if ( is_wp_error( $theme ) ) {
+			return $theme;
+		}
+		$stylesheet = $theme->get_stylesheet();
+		if ( $theme->errors() ) {
+			return new \WP_Error( 'theme_broken', __( 'That theme has load errors and cannot be activated.', 'emcp-tools' ) );
+		}
+		switch_theme( $stylesheet );
+		return array( 'success' => true, 'stylesheet' => $stylesheet );
+	}
+
 	// -------------------------------------------------------------------
-	// update-theme (stub — full implementation added in lifecycle task)
+	// update-theme
 	// -------------------------------------------------------------------
 
 	private function register_update_theme(): void {
@@ -237,8 +297,50 @@ class EMCP_Tools_Theme_Abilities {
 		);
 	}
 
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_update_theme( $input ) {
+		$theme = $this->resolve_theme( $input['stylesheet'] ?? '' );
+		if ( is_wp_error( $theme ) ) {
+			return $theme;
+		}
+		$stylesheet = $theme->get_stylesheet();
+		$ready      = EMCP_Tools_Package_Guard::filesystem_ready();
+		if ( is_wp_error( $ready ) ) {
+			return $ready;
+		}
+		if ( function_exists( 'wp_update_themes' ) ) {
+			wp_update_themes();
+		}
+		$updates = get_site_transient( 'update_themes' );
+		$resp    = ( is_object( $updates ) && isset( $updates->response ) && is_array( $updates->response ) ) ? $updates->response : array();
+		$old     = (string) $theme->get( 'Version' );
+		if ( ! isset( $resp[ $stylesheet ] ) ) {
+			return array( 'success' => true, 'up_to_date' => true, 'stylesheet' => $stylesheet, 'old_version' => $old, 'new_version' => $old, 'messages' => array() );
+		}
+		$skin     = EMCP_Tools_Package_Guard::make_skin();
+		$upgrader = new \Theme_Upgrader( $skin );
+		$result   = $upgrader->upgrade( $stylesheet );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		if ( false === $result ) {
+			return new \WP_Error( 'update_failed', __( 'Theme update failed.', 'emcp-tools' ) );
+		}
+		return array(
+			'success'     => true,
+			'up_to_date'  => false,
+			'stylesheet'  => $stylesheet,
+			'old_version' => $old,
+			'new_version' => (string) ( $resp[ $stylesheet ]['new_version'] ?? '' ),
+			'messages'    => EMCP_Tools_Package_Guard::skin_messages( $skin ),
+		);
+	}
+
 	// -------------------------------------------------------------------
-	// delete-theme (stub — full implementation added in lifecycle task)
+	// delete-theme
 	// -------------------------------------------------------------------
 
 	private function register_delete_theme(): void {
@@ -260,5 +362,55 @@ class EMCP_Tools_Theme_Abilities {
 				'meta'                => array( 'annotations' => array( 'readonly' => false, 'destructive' => true, 'idempotent' => false ), 'show_in_rest' => true ),
 			)
 		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_delete_theme( $input ) {
+		$theme = $this->resolve_theme( $input['stylesheet'] ?? '' );
+		if ( is_wp_error( $theme ) ) {
+			return $theme;
+		}
+		$stylesheet = $theme->get_stylesheet();
+		if ( in_array( $stylesheet, EMCP_Tools_Package_Guard::active_theme_stylesheets(), true ) ) {
+			return new \WP_Error( 'theme_active', __( 'Cannot delete the active theme or the parent of the active theme. Switch themes first.', 'emcp-tools' ) );
+		}
+		$ready = EMCP_Tools_Package_Guard::filesystem_ready();
+		if ( is_wp_error( $ready ) ) {
+			return $ready;
+		}
+		$res = delete_theme( $stylesheet );
+		if ( is_wp_error( $res ) ) {
+			return $res;
+		}
+		if ( ! $res ) {
+			return new \WP_Error( 'delete_failed', __( 'Theme deletion failed.', 'emcp-tools' ) );
+		}
+		return array( 'deleted' => (bool) $res, 'stylesheet' => $stylesheet );
+	}
+
+	// -------------------------------------------------------------------
+	// helper
+	// -------------------------------------------------------------------
+
+	/**
+	 * Resolve a stylesheet to an installed WP_Theme, or WP_Error if missing.
+	 *
+	 * @param string $stylesheet
+	 * @return \WP_Theme|\WP_Error
+	 */
+	private function resolve_theme( $stylesheet ) {
+		$stylesheet = sanitize_key( (string) $stylesheet );
+		if ( '' === $stylesheet ) {
+			return new \WP_Error( 'missing_params', __( 'A "stylesheet" is required.', 'emcp-tools' ) );
+		}
+		EMCP_Tools_Package_Guard::load_upgrader_deps();
+		$theme = function_exists( 'wp_get_theme' ) ? wp_get_theme( $stylesheet ) : null;
+		if ( ! $theme || ! ( is_object( $theme ) && method_exists( $theme, 'exists' ) ? $theme->exists() : false ) ) {
+			return new \WP_Error( 'theme_not_found', sprintf( /* translators: %s: stylesheet */ __( 'No installed theme named "%s".', 'emcp-tools' ), $stylesheet ) );
+		}
+		return $theme;
 	}
 }

@@ -38,8 +38,10 @@ class ThemeToolsTest extends Ability_Test_Case {
 	/** @test */
 	public function test_registers_six_tools(): void {
 		$names = $this->themes()->get_ability_names();
-		$this->assertContains( 'emcp-tools/list-themes', $names );
-		$this->assertContains( 'emcp-tools/search-themes', $names );
+		foreach ( array( 'list-themes', 'search-themes', 'install-theme', 'switch-theme', 'update-theme', 'delete-theme' ) as $slug ) {
+			$this->assertContains( 'emcp-tools/' . $slug, $names );
+		}
+		$this->assertCount( 6, $names );
 	}
 
 	/** @test */
@@ -65,5 +67,75 @@ class ThemeToolsTest extends Ability_Test_Case {
 	/** @test */
 	public function test_search_themes_requires_query(): void {
 		$this->assertWPError( $this->themes()->execute_search_themes( array() ), 'missing_params' );
+	}
+
+	/** @test */
+	public function test_install_theme_installs_and_optionally_activates(): void {
+		$GLOBALS['_wp_upgrader_theme_info'] = 'hello-elementor';
+		$out = $this->themes()->execute_install_theme( array( 'slug' => 'hello-elementor', 'activate' => true ) );
+		$this->assertNotWPError( $out );
+		$this->assertTrue( $out['installed'] );
+		$this->assertTrue( $out['activated'] );
+		$this->assertSame( 'hello-elementor', $GLOBALS['_wp_switched_theme'] );
+	}
+
+	/** @test */
+	public function test_install_theme_requires_slug(): void {
+		$this->assertWPError( $this->themes()->execute_install_theme( array() ), 'missing_params' );
+	}
+
+	/** @test */
+	public function test_install_theme_blocked_when_filesystem_not_direct(): void {
+		$GLOBALS['_wp_fs_method'] = 'ftpext';
+		$this->assertWPError( $this->themes()->execute_install_theme( array( 'slug' => 'astra' ) ), 'filesystem_unavailable' );
+	}
+
+	/** @test */
+	public function test_switch_theme_activates_installed(): void {
+		$out = $this->themes()->execute_switch_theme( array( 'stylesheet' => 'twentytwentyfour' ) );
+		$this->assertNotWPError( $out );
+		$this->assertSame( 'twentytwentyfour', $GLOBALS['_wp_switched_theme'] );
+	}
+
+	/** @test */
+	public function test_switch_theme_unknown_errors(): void {
+		$this->assertWPError( $this->themes()->execute_switch_theme( array( 'stylesheet' => 'ghost' ) ), 'theme_not_found' );
+	}
+
+	/** @test */
+	public function test_delete_theme_refuses_active(): void {
+		$this->assertWPError( $this->themes()->execute_delete_theme( array( 'stylesheet' => 'astra-child' ) ), 'theme_active' );
+	}
+
+	/** @test */
+	public function test_delete_theme_refuses_active_parent(): void {
+		$this->assertWPError( $this->themes()->execute_delete_theme( array( 'stylesheet' => 'astra' ) ), 'theme_active' );
+	}
+
+	/** @test */
+	public function test_delete_theme_removes_inactive(): void {
+		$out = $this->themes()->execute_delete_theme( array( 'stylesheet' => 'twentytwentyfour' ) );
+		$this->assertNotWPError( $out );
+		$this->assertTrue( $out['deleted'] );
+		$this->assertContains( 'twentytwentyfour', $GLOBALS['_wp_deleted_themes'] );
+	}
+
+	/** @test */
+	public function test_update_theme_reports_up_to_date(): void {
+		$GLOBALS['_wp_site_transients']['update_themes'] = (object) array( 'response' => array() );
+		$out = $this->themes()->execute_update_theme( array( 'stylesheet' => 'astra' ) );
+		$this->assertNotWPError( $out );
+		$this->assertTrue( $out['up_to_date'] );
+	}
+
+	/** @test */
+	public function test_update_theme_runs_when_available(): void {
+		$GLOBALS['_wp_site_transients']['update_themes'] = (object) array(
+			'response' => array( 'astra' => array( 'new_version' => '4.7' ) ),
+		);
+		$out = $this->themes()->execute_update_theme( array( 'stylesheet' => 'astra' ) );
+		$this->assertNotWPError( $out );
+		$this->assertFalse( $out['up_to_date'] );
+		$this->assertContains( 'astra', $GLOBALS['_wp_upgraded'] );
 	}
 }
