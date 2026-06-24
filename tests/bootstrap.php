@@ -639,6 +639,182 @@ namespace {
 		}
 	}
 
+	if ( ! function_exists( 'get_plugins' ) ) {
+		function get_plugins( $folder = '' ) {
+			return isset( $GLOBALS['_wp_plugins'] ) && is_array( $GLOBALS['_wp_plugins'] ) ? $GLOBALS['_wp_plugins'] : array();
+		}
+	}
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		function is_plugin_active( $file ) {
+			return in_array( $file, $GLOBALS['_wp_active_plugins'] ?? array(), true );
+		}
+	}
+	if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+		function is_plugin_active_for_network( $file ) {
+			return in_array( $file, $GLOBALS['_wp_network_active_plugins'] ?? array(), true );
+		}
+	}
+	if ( ! function_exists( 'activate_plugin' ) ) {
+		function activate_plugin( $file, $redirect = '', $network_wide = false, $silent = false ) {
+			$GLOBALS['_wp_activated_plugins'][] = $file;
+			$GLOBALS['_wp_active_plugins'][]    = $file;
+			return null;
+		}
+	}
+	if ( ! function_exists( 'deactivate_plugins' ) ) {
+		function deactivate_plugins( $files, $silent = false, $network_wide = null ) {
+			foreach ( (array) $files as $f ) {
+				$GLOBALS['_wp_deactivated_plugins'][] = $f;
+				$GLOBALS['_wp_active_plugins']        = array_values( array_diff( $GLOBALS['_wp_active_plugins'] ?? array(), array( $f ) ) );
+			}
+		}
+	}
+	if ( ! function_exists( 'delete_plugins' ) ) {
+		function delete_plugins( $files ) {
+			foreach ( (array) $files as $f ) {
+				$GLOBALS['_wp_deleted_plugins'][] = $f;
+			}
+			return true;
+		}
+	}
+	if ( ! function_exists( 'wp_get_themes' ) ) {
+		function wp_get_themes( $args = array() ) {
+			return isset( $GLOBALS['_wp_themes'] ) && is_array( $GLOBALS['_wp_themes'] ) ? $GLOBALS['_wp_themes'] : array();
+		}
+	}
+	if ( ! function_exists( 'wp_get_theme' ) ) {
+		function wp_get_theme( $stylesheet = null, $theme_root = null ) {
+			$themes = $GLOBALS['_wp_themes'] ?? array();
+			if ( null === $stylesheet ) {
+				$stylesheet = $GLOBALS['_wp_active_stylesheet'] ?? '';
+			}
+			return $themes[ $stylesheet ] ?? new \WP_Theme( $stylesheet, false );
+		}
+	}
+	if ( ! function_exists( 'switch_theme' ) ) {
+		function switch_theme( $stylesheet ) {
+			$GLOBALS['_wp_switched_theme']     = $stylesheet;
+			$GLOBALS['_wp_active_stylesheet']  = $stylesheet;
+		}
+	}
+	if ( ! function_exists( 'delete_theme' ) ) {
+		function delete_theme( $stylesheet, $redirect = '' ) {
+			$GLOBALS['_wp_deleted_themes'][] = $stylesheet;
+			return true;
+		}
+	}
+	if ( ! function_exists( 'get_stylesheet' ) ) {
+		function get_stylesheet() { return $GLOBALS['_wp_active_stylesheet'] ?? 'activetheme'; }
+	}
+	if ( ! function_exists( 'get_template' ) ) {
+		function get_template() { return $GLOBALS['_wp_active_template'] ?? ( $GLOBALS['_wp_active_stylesheet'] ?? 'activetheme' ); }
+	}
+	if ( ! function_exists( 'get_filesystem_method' ) ) {
+		function get_filesystem_method( $args = array(), $context = '', $allow_relaxed = false ) {
+			return $GLOBALS['_wp_fs_method'] ?? 'direct';
+		}
+	}
+	if ( ! function_exists( 'WP_Filesystem' ) ) {
+		function WP_Filesystem( $args = false, $context = false, $allow_relaxed = false ) {
+			return ( ( $GLOBALS['_wp_fs_method'] ?? 'direct' ) === 'direct' );
+		}
+	}
+	if ( ! function_exists( 'request_filesystem_credentials' ) ) {
+		function request_filesystem_credentials( ...$a ) { return array(); }
+	}
+	if ( ! function_exists( 'plugins_api' ) ) {
+		function plugins_api( $action, $args = array() ) {
+			if ( isset( $GLOBALS['_wp_plugins_api_error'] ) ) {
+				return new \WP_Error( 'plugins_api_failed', $GLOBALS['_wp_plugins_api_error'] );
+			}
+			if ( 'query_plugins' === $action ) {
+				return (object) array( 'plugins' => $GLOBALS['_wp_plugins_api_query'] ?? array(), 'info' => array( 'results' => 0 ) );
+			}
+			$args = (object) $args;
+			return (object) array( 'name' => $args->slug ?? 'x', 'slug' => $args->slug ?? 'x', 'version' => '1.0', 'download_link' => 'https://downloads.wordpress.org/plugin/' . ( $args->slug ?? 'x' ) . '.zip' );
+		}
+	}
+	if ( ! function_exists( 'themes_api' ) ) {
+		function themes_api( $action, $args = array() ) {
+			if ( isset( $GLOBALS['_wp_themes_api_error'] ) ) {
+				return new \WP_Error( 'themes_api_failed', $GLOBALS['_wp_themes_api_error'] );
+			}
+			if ( 'query_themes' === $action ) {
+				return (object) array( 'themes' => $GLOBALS['_wp_themes_api_query'] ?? array(), 'info' => array( 'results' => 0 ) );
+			}
+			$args = (object) $args;
+			return (object) array( 'name' => $args->slug ?? 'x', 'slug' => $args->slug ?? 'x', 'version' => '1.0', 'download_link' => 'https://downloads.wordpress.org/theme/' . ( $args->slug ?? 'x' ) . '.zip' );
+		}
+	}
+	if ( ! function_exists( 'wp_update_plugins' ) ) {
+		function wp_update_plugins( $extra = array() ) {}
+	}
+	if ( ! function_exists( 'wp_update_themes' ) ) {
+		function wp_update_themes( $extra = array() ) {}
+	}
+	if ( ! function_exists( 'get_site_transient' ) ) {
+		function get_site_transient( $key ) {
+			return $GLOBALS['_wp_site_transients'][ $key ] ?? false;
+		}
+	}
+	if ( ! function_exists( 'get_plugin_data' ) ) {
+		function get_plugin_data( $file, $markup = true, $translate = true ) {
+			return $GLOBALS['_wp_plugin_data'][ $file ] ?? array( 'Name' => basename( $file ), 'Version' => '1.0', 'Author' => '' );
+		}
+	}
+
+	if ( ! class_exists( 'WP_Theme' ) ) {
+		class WP_Theme {
+			public $stylesheet; public $data; private $exists;
+			public function __construct( $stylesheet, $data = array() ) {
+				$this->stylesheet = (string) $stylesheet;
+				$this->exists     = false !== $data;
+				$this->data       = is_array( $data ) ? $data : array();
+			}
+			public function get( $k ) { return $this->data[ $k ] ?? ''; }
+			public function get_stylesheet() { return $this->stylesheet; }
+			public function get_template() { return $this->data['Template'] ?? $this->stylesheet; }
+			public function exists() { return $this->exists; }
+			public function errors() { return ! empty( $this->data['__errors'] ) ? new \WP_Error( 'theme_error', 'broken' ) : false; }
+			public function parent() { return ! empty( $this->data['Template'] ) && $this->data['Template'] !== $this->stylesheet; }
+		}
+	}
+	if ( ! class_exists( 'Automatic_Upgrader_Skin' ) ) {
+		class Automatic_Upgrader_Skin {
+			public function get_upgrade_messages() { return array( 'Done.' ); }
+		}
+	}
+	if ( ! class_exists( 'Plugin_Upgrader' ) ) {
+		class Plugin_Upgrader {
+			public $skin; public $result;
+			public function __construct( $skin = null ) { $this->skin = $skin; }
+			public function install( $package, $args = array() ) {
+				if ( ! empty( $GLOBALS['_wp_upgrader_install_error'] ) ) { return new \WP_Error( 'install_failed', $GLOBALS['_wp_upgrader_install_error'] ); }
+				$GLOBALS['_wp_installed_packages'][] = $package; return true;
+			}
+			public function upgrade( $file, $args = array() ) {
+				if ( ! empty( $GLOBALS['_wp_upgrader_upgrade_error'] ) ) { return new \WP_Error( 'upgrade_failed', $GLOBALS['_wp_upgrader_upgrade_error'] ); }
+				$GLOBALS['_wp_upgraded'][] = $file; return true;
+			}
+			public function plugin_info() { return $GLOBALS['_wp_upgrader_plugin_info'] ?? 'installed-plugin/installed-plugin.php'; }
+		}
+	}
+	if ( ! class_exists( 'Theme_Upgrader' ) ) {
+		class Theme_Upgrader {
+			public $skin; public $result;
+			public function __construct( $skin = null ) { $this->skin = $skin; }
+			public function install( $package, $args = array() ) {
+				if ( ! empty( $GLOBALS['_wp_upgrader_install_error'] ) ) { return new \WP_Error( 'install_failed', $GLOBALS['_wp_upgrader_install_error'] ); }
+				$GLOBALS['_wp_installed_packages'][] = $package; return true;
+			}
+			public function upgrade( $stylesheet, $args = array() ) {
+				if ( ! empty( $GLOBALS['_wp_upgrader_upgrade_error'] ) ) { return new \WP_Error( 'upgrade_failed', $GLOBALS['_wp_upgrader_upgrade_error'] ); }
+				$GLOBALS['_wp_upgraded'][] = $stylesheet; return true;
+			}
+			public function theme_info() { return new \WP_Theme( $GLOBALS['_wp_upgrader_theme_info'] ?? 'installed-theme', array( 'Version' => '1.0' ) ); }
+		}
+	}
+
 }  // end namespace {}
 
 // ---------------------------------------------------------------------------
