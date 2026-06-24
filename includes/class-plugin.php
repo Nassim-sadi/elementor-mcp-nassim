@@ -159,8 +159,8 @@ class EMCP_Tools_Plugin {
 	 *
 	 * Trimmed to fit under a 60-tool budget while preserving every category
 	 * an AI agent needs to build a page from scratch: discovery, page CRUD,
-	 * layout, universal widget add/update, a small set of common widget
-	 * shortcuts, globals, templates, stock images, custom code, and (when
+	 * layout, the catalog-backed widget tools (add-free-widget / add-pro-widget /
+	 * update-widget), globals, templates, stock images, custom code, and (when
 	 * Elementor 4.0+ is active) the atomic universal + container tools.
 	 *
 	 * @since 1.6.0
