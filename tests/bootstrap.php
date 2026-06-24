@@ -981,6 +981,7 @@ namespace {
 			'EMCP_Tools_Template_Abilities'     => 'includes/abilities/class-template-abilities.php',
 			'EMCP_Tools_Widget_Abilities'       => 'includes/abilities/class-widget-abilities.php',
 			'EMCP_Tools_Plugin_Abilities'       => 'includes/abilities/class-plugin-abilities.php',
+			'EMCP_Tools_Theme_Abilities'        => 'includes/abilities/class-theme-abilities.php',
 		];
 
 		if ( isset( $map[ $class ] ) ) {
