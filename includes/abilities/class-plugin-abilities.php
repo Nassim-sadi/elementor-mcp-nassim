@@ -447,7 +447,10 @@ class EMCP_Tools_Plugin_Abilities {
 		if ( is_wp_error( $res ) ) {
 			return $res;
 		}
-		return array( 'deleted' => (bool) $res, 'plugin' => $file );
+		if ( ! $res ) {
+			return new \WP_Error( 'delete_failed', __( 'Plugin deletion failed.', 'emcp-tools' ) );
+		}
+		return array( 'deleted' => true, 'plugin' => $file );
 	}
 
 	// -------------------------------------------------------------------
