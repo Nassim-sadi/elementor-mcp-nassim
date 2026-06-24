@@ -940,6 +940,7 @@ namespace {
 
 		$map = [
 			// Core classes
+			'EMCP_Tools_Package_Guard'          => 'includes/class-package-guard.php',
 			'EMCP_Tools_Atomic_Props'           => 'includes/class-atomic-props.php',
 			'EMCP_Tools_Data'                  => 'includes/class-elementor-data.php',
 			'EMCP_Tools_Element_Factory'        => 'includes/class-element-factory.php',
