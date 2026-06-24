@@ -53,6 +53,8 @@ class EMCP_Tools_Content_Abilities {
 	public function register(): void {
 		$this->register_list_post_types();
 		$this->register_list_taxonomies();
+		$this->register_create_post();
+		$this->register_get_post();
 	}
 
 	// ---------------------------------------------------------------------
@@ -156,7 +158,7 @@ class EMCP_Tools_Content_Abilities {
 		$args        = $public_only ? array( 'public' => true ) : array();
 		$objects     = get_post_types( $args, 'objects' );
 
-		$internal = array( 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset', 'oembed_cache', 'user_request', 'wp_template', 'wp_template_part', 'wp_global_styles', 'wp_navigation' );
+		$internal = $this->internal_post_types();
 		$rows     = array();
 		foreach ( $objects as $name => $obj ) {
 			if ( $public_only && in_array( $name, $internal, true ) ) {
@@ -249,5 +251,342 @@ class EMCP_Tools_Content_Abilities {
 			$rows[] = $row;
 		}
 		return array( 'taxonomies' => $rows );
+	}
+
+	// ---------------------------------------------------------------------
+	// Shared write helpers
+	// ---------------------------------------------------------------------
+
+	/** Internal/non-writable post types (never targets for create/update/delete). */
+	private function internal_post_types(): array {
+		return array( 'revision', 'nav_menu_item', 'custom_css', 'customize_changeset', 'oembed_cache', 'user_request', 'wp_template', 'wp_template_part', 'wp_global_styles', 'wp_navigation', 'attachment' );
+	}
+
+	/** Whether a post type may be written to. */
+	private function is_writable_post_type( string $post_type ): bool {
+		if ( '' === $post_type || ! post_type_exists( $post_type ) ) {
+			return false;
+		}
+		return ! in_array( $post_type, $this->internal_post_types(), true );
+	}
+
+	/**
+	 * Validate a meta map against the protected-meta guard.
+	 *
+	 * @param array $meta
+	 * @return true|\WP_Error
+	 */
+	private function reject_protected_meta( array $meta ) {
+		$allowed = (array) apply_filters( 'emcp_tools_content_allowed_protected_meta', array() );
+		foreach ( array_keys( $meta ) as $key ) {
+			$key = (string) $key;
+			if ( in_array( $key, $allowed, true ) ) {
+				continue;
+			}
+			if ( '_' === substr( $key, 0, 1 ) || is_protected_meta( $key, 'post' ) ) {
+				return new \WP_Error( 'protected_meta', sprintf( /* translators: %s: meta key */ __( 'Refusing to write protected meta key "%s". Use the featured_image param for thumbnails; Elementor data is never writable here.', 'emcp-tools' ), $key ) );
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Apply terms / meta / featured image to a post after create/update.
+	 *
+	 * @param int   $post_id
+	 * @param array $input
+	 * @param array $warnings     By reference; non-fatal problems are appended.
+	 * @param bool  $append_terms
+	 */
+	private function apply_write_extras( int $post_id, array $input, array &$warnings, bool $append_terms = false ): void {
+		if ( isset( $input['terms'] ) && is_array( $input['terms'] ) ) {
+			foreach ( $input['terms'] as $taxonomy => $terms ) {
+				$taxonomy = sanitize_key( $taxonomy );
+				$res      = wp_set_object_terms( $post_id, array_values( (array) $terms ), $taxonomy, $append_terms );
+				if ( is_wp_error( $res ) ) {
+					$warnings[] = sprintf( 'terms[%s]: %s', $taxonomy, $res->get_error_message() );
+				}
+			}
+		}
+		if ( isset( $input['meta'] ) && is_array( $input['meta'] ) ) {
+			foreach ( $input['meta'] as $key => $value ) {
+				update_post_meta( $post_id, sanitize_key( $key ), $value );
+			}
+		}
+		if ( array_key_exists( 'featured_image', $input ) ) {
+			$fi = $input['featured_image'];
+			if ( null === $fi ) {
+				delete_post_thumbnail( $post_id );
+			} elseif ( is_array( $fi ) && ! empty( $fi['id'] ) ) {
+				set_post_thumbnail( $post_id, absint( $fi['id'] ) );
+			} elseif ( is_array( $fi ) && ! empty( $fi['url'] ) ) {
+				if ( ! current_user_can( 'upload_files' ) ) {
+					$warnings[] = 'featured_image: upload_files capability required to sideload a URL.';
+				} else {
+					$att = media_sideload_image( esc_url_raw( (string) $fi['url'] ), $post_id, '', 'id' );
+					if ( is_wp_error( $att ) ) {
+						$warnings[] = 'featured_image: ' . $att->get_error_message();
+					} else {
+						set_post_thumbnail( $post_id, (int) $att );
+					}
+				}
+			}
+		}
+	}
+
+	/** Allowed post statuses for create/update. */
+	private function valid_statuses(): array {
+		return array( 'draft', 'publish', 'pending', 'private', 'future' );
+	}
+
+	// ---------------------------------------------------------------------
+	// create-post
+	// ---------------------------------------------------------------------
+
+	private function register_create_post(): void {
+		$this->ability_names[] = 'emcp-tools/create-post';
+		emcp_tools_register_ability(
+			'emcp-tools/create-post',
+			array(
+				'label'               => __( 'Create Post', 'emcp-tools' ),
+				'description'         => __( 'Creates a post, page, or any custom post type. Sets title, content (classic HTML or Gutenberg block markup), excerpt, status, slug, author, date, parent/menu_order, plus optional taxonomy terms, custom-field meta, and a featured image — in one call. This writes post_content; to build an Elementor page use the Elementor tools instead.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_create_post' ),
+				'permission_callback' => array( $this, 'check_create_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'post_type'      => array( 'type' => 'string', 'description' => __( 'Target type (post, page, or a CPT from list-post-types). Default: post.', 'emcp-tools' ) ),
+						'title'          => array( 'type' => 'string', 'description' => __( 'Post title.', 'emcp-tools' ) ),
+						'content'        => array( 'type' => 'string', 'description' => __( 'post_content — classic HTML or Gutenberg block markup, stored verbatim.', 'emcp-tools' ) ),
+						'excerpt'        => array( 'type' => 'string' ),
+						'status'         => array( 'type' => 'string', 'enum' => array( 'draft', 'publish', 'pending', 'private', 'future' ), 'description' => __( 'Default: draft.', 'emcp-tools' ) ),
+						'slug'           => array( 'type' => 'string' ),
+						'author'         => array( 'type' => 'integer', 'description' => __( 'User ID. Default: current user.', 'emcp-tools' ) ),
+						'date'           => array( 'type' => 'string', 'description' => __( 'Y-m-d H:i:s. Required for status=future.', 'emcp-tools' ) ),
+						'parent'         => array( 'type' => 'integer', 'description' => __( 'Parent ID (hierarchical types).', 'emcp-tools' ) ),
+						'menu_order'     => array( 'type' => 'integer' ),
+						'comment_status' => array( 'type' => 'string', 'enum' => array( 'open', 'closed' ) ),
+						'terms'          => array( 'type' => 'object', 'description' => __( 'Map of taxonomy → array of term IDs or names. Names are created if missing.', 'emcp-tools' ) ),
+						'meta'           => array( 'type' => 'object', 'description' => __( 'Custom fields. Protected/underscore-prefixed keys are rejected.', 'emcp-tools' ) ),
+						'featured_image' => array( 'type' => 'object', 'description' => __( 'Featured image: { id } (attachment) or { url } (sideloaded). null clears.', 'emcp-tools' ) ),
+					),
+				),
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'post_id'   => array( 'type' => 'integer' ),
+						'status'    => array( 'type' => 'string' ),
+						'permalink' => array( 'type' => 'string' ),
+						'edit_link' => array( 'type' => 'string' ),
+						'warnings'  => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+					),
+				),
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => false, 'destructive' => false, 'idempotent' => false ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_create_post( $input ) {
+		$post_type = sanitize_key( $input['post_type'] ?? 'post' );
+		if ( '' === $post_type ) {
+			$post_type = 'post';
+		}
+		if ( ! $this->is_writable_post_type( $post_type ) ) {
+			return new \WP_Error( 'invalid_post_type', sprintf( /* translators: %s: type */ __( '"%s" is not a writable post type.', 'emcp-tools' ), $post_type ) );
+		}
+
+		$status = sanitize_key( $input['status'] ?? 'draft' );
+		if ( ! in_array( $status, $this->valid_statuses(), true ) ) {
+			return new \WP_Error( 'invalid_status', __( 'Invalid status.', 'emcp-tools' ) );
+		}
+		if ( 'publish' === $status && ! current_user_can( 'publish_posts' ) ) {
+			return new \WP_Error( 'cannot_publish', __( 'You do not have permission to publish.', 'emcp-tools' ) );
+		}
+
+		if ( isset( $input['meta'] ) && is_array( $input['meta'] ) ) {
+			$guard = $this->reject_protected_meta( $input['meta'] );
+			if ( is_wp_error( $guard ) ) {
+				return $guard;
+			}
+		}
+
+		$author = absint( $input['author'] ?? 0 );
+		if ( $author && (int) $author !== get_current_user_id() && ! current_user_can( 'edit_others_posts' ) ) {
+			return new \WP_Error( 'cannot_set_author', __( 'You cannot assign another author.', 'emcp-tools' ) );
+		}
+
+		$postarr = array(
+			'post_type'    => $post_type,
+			'post_status'  => $status,
+			'post_title'   => sanitize_text_field( $input['title'] ?? '' ),
+			'post_content' => (string) ( $input['content'] ?? '' ),
+			'post_excerpt' => (string) ( $input['excerpt'] ?? '' ),
+		);
+		if ( ! empty( $input['slug'] ) ) {
+			$postarr['post_name'] = sanitize_title( $input['slug'] );
+		}
+		if ( $author ) {
+			$postarr['post_author'] = $author;
+		}
+		if ( ! empty( $input['date'] ) ) {
+			$postarr['post_date'] = sanitize_text_field( $input['date'] );
+		}
+		if ( isset( $input['parent'] ) ) {
+			$postarr['post_parent'] = absint( $input['parent'] );
+		}
+		if ( isset( $input['menu_order'] ) ) {
+			$postarr['menu_order'] = (int) $input['menu_order'];
+		}
+		if ( ! empty( $input['comment_status'] ) ) {
+			$postarr['comment_status'] = ( 'open' === $input['comment_status'] ) ? 'open' : 'closed';
+		}
+
+		$post_id = wp_insert_post( wp_slash( $postarr ), true );
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+		$post_id = (int) $post_id;
+
+		$warnings = array();
+		$this->apply_write_extras( $post_id, $input, $warnings, false );
+
+		$result = array(
+			'post_id'   => $post_id,
+			'status'    => $status,
+			'permalink' => (string) get_permalink( $post_id ),
+			'edit_link' => admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
+		);
+		if ( $warnings ) {
+			$result['warnings'] = $warnings;
+		}
+		return $result;
+	}
+
+	// ---------------------------------------------------------------------
+	// get-post
+	// ---------------------------------------------------------------------
+
+	private function register_get_post(): void {
+		$this->ability_names[] = 'emcp-tools/get-post';
+		emcp_tools_register_ability(
+			'emcp-tools/get-post',
+			array(
+				'label'               => __( 'Get Post', 'emcp-tools' ),
+				'description'         => __( 'Returns a single post/page/CPT: title, content, status, author, dates, terms, non-protected meta, and featured image. The is_elementor flag tells you whether the page is built with Elementor (edit those with the Elementor tools, not update-post).', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_get_post' ),
+				'permission_callback' => array( $this, 'check_read_permission' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array( 'post_id' => array( 'type' => 'integer', 'description' => __( 'The post ID.', 'emcp-tools' ) ) ),
+					'required'   => array( 'post_id' ),
+				),
+				'output_schema'       => array( 'type' => 'object', 'properties' => array(
+					'post_id' => array( 'type' => 'integer' ), 'post_type' => array( 'type' => 'string' ),
+					'title' => array( 'type' => 'string' ), 'slug' => array( 'type' => 'string' ),
+					'status' => array( 'type' => 'string' ), 'content' => array( 'type' => 'string' ),
+					'excerpt' => array( 'type' => 'string' ), 'date' => array( 'type' => 'string' ),
+					'modified' => array( 'type' => 'string' ), 'parent' => array( 'type' => 'integer' ),
+					'menu_order' => array( 'type' => 'integer' ), 'comment_status' => array( 'type' => 'string' ),
+					'permalink' => array( 'type' => 'string' ),
+					'edit_link' => array( 'type' => 'string' ), 'author' => array( 'type' => 'object' ),
+					'terms' => array( 'type' => 'object' ), 'meta' => array( 'type' => 'object' ),
+					'featured_image' => array( 'type' => array( 'object', 'null' ) ),
+					'is_elementor' => array( 'type' => 'boolean' ),
+				) ),
+				'meta'                => array(
+					'annotations'  => array( 'readonly' => true, 'destructive' => false, 'idempotent' => true ),
+					'show_in_rest' => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_get_post( $input ) {
+		$post_id = absint( $input['post_id'] ?? 0 );
+		if ( ! $post_id ) {
+			return new \WP_Error( 'missing_post_id', __( 'post_id is required.', 'emcp-tools' ) );
+		}
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return new \WP_Error( 'post_not_found', __( 'Post not found.', 'emcp-tools' ) );
+		}
+		return $this->format_post( $post );
+	}
+
+	/**
+	 * Full serialization of a post for get-post.
+	 *
+	 * @param object $post WP_Post.
+	 * @return array
+	 */
+	private function format_post( $post ): array {
+		$post_id = (int) $post->ID;
+
+		$terms = array();
+		foreach ( (array) get_object_taxonomies( $post->post_type ) as $tax ) {
+			$tobjs = get_the_terms( $post, $tax );
+			if ( is_array( $tobjs ) ) {
+				$terms[ $tax ] = array();
+				foreach ( $tobjs as $t ) {
+					$terms[ $tax ][] = array( 'term_id' => (int) $t->term_id, 'name' => (string) $t->name, 'slug' => (string) $t->slug );
+				}
+			}
+		}
+
+		$meta_raw = get_post_meta( $post_id );
+		$meta     = array();
+		if ( is_array( $meta_raw ) ) {
+			foreach ( $meta_raw as $key => $vals ) {
+				if ( '_' === substr( (string) $key, 0, 1 ) || is_protected_meta( (string) $key, 'post' ) ) {
+					continue;
+				}
+				$meta[ $key ] = is_array( $vals ) && 1 === count( $vals ) ? maybe_unserialize( $vals[0] ) : array_map( 'maybe_unserialize', (array) $vals );
+			}
+		}
+
+		$thumb_id = (int) get_post_thumbnail_id( $post );
+		$featured = $thumb_id ? array(
+			'id'  => $thumb_id,
+			'url' => (string) wp_get_attachment_image_url( $thumb_id, 'full' ),
+			'alt' => (string) get_post_meta( $thumb_id, '_wp_attachment_image_alt', true ),
+		) : null;
+
+		$author_id  = (int) ( $post->post_author ?? 0 );
+		$author_obj = $author_id ? get_userdata( $author_id ) : null;
+
+		return array(
+			'post_id'        => $post_id,
+			'post_type'      => (string) $post->post_type,
+			'title'          => (string) $post->post_title,
+			'slug'           => (string) $post->post_name,
+			'status'         => (string) $post->post_status,
+			'content'        => (string) $post->post_content,
+			'excerpt'        => (string) $post->post_excerpt,
+			'date'           => (string) $post->post_date,
+			'modified'       => (string) ( $post->post_modified ?? '' ),
+			'parent'         => (int) ( $post->post_parent ?? 0 ),
+			'menu_order'     => (int) ( $post->menu_order ?? 0 ),
+			'comment_status' => (string) ( $post->comment_status ?? '' ),
+			'permalink'      => (string) get_permalink( $post_id ),
+			'edit_link'      => admin_url( 'post.php?post=' . $post_id . '&action=edit' ),
+			'author'         => array( 'id' => $author_id, 'name' => $author_obj ? (string) $author_obj->display_name : '' ),
+			'terms'          => $terms,
+			'meta'           => $meta,
+			'featured_image' => $featured,
+			'is_elementor'   => 'builder' === get_post_meta( $post_id, '_elementor_edit_mode', true ),
+		);
 	}
 }

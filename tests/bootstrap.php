@@ -353,8 +353,14 @@ namespace {
 
 	if ( ! function_exists( 'get_post' ) ) {
 		function get_post( $post = null, string $output = 'OBJECT', string $filter = 'raw' ) {
-			return null;
+			if ( is_object( $post ) ) { return $post; }
+			$id = absint( $post );
+			return $GLOBALS['_wp_posts'][ $id ] ?? null;
 		}
+	}
+
+	if ( ! function_exists( 'maybe_unserialize' ) ) {
+		function maybe_unserialize( $value ) { return is_string( $value ) ? ( @unserialize( $value ) !== false || 'b:0;' === $value ? unserialize( $value ) : $value ) : $value; }
 	}
 
 	if ( ! function_exists( 'get_option' ) ) {
