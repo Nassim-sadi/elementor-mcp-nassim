@@ -26,6 +26,12 @@
         <testsuite name="Widgets">
             <directory>tests/unit/widgets</directory>
         </testsuite>
+        <testsuite name="Content">
+            <directory>tests/unit/content</directory>
+        </testsuite>
+        <testsuite name="Settings">
+            <directory>tests/unit/settings</directory>
+        </testsuite>
     </testsuites>
 
     <source>
