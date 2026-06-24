@@ -233,7 +233,112 @@ class EMCP_Tools_Settings_Abilities {
 	}
 
 	// ---------------------------------------------------------------------
-	// update-settings
+	// Execute: update-settings
+	// ---------------------------------------------------------------------
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_update_settings( $input ) {
+		$settings = ( isset( $input['settings'] ) && is_array( $input['settings'] ) ) ? $input['settings'] : array();
+		if ( empty( $settings ) ) {
+			return new \WP_Error( 'missing_params', __( 'A non-empty "settings" map is required.', 'emcp-tools' ) );
+		}
+
+		$map              = self::allowlist();
+		$updated          = array();
+		$skipped          = array();
+		$permalink_change = false;
+
+		foreach ( $settings as $key => $value ) {
+			$key = (string) $key;
+			if ( ! isset( $map[ $key ] ) ) {
+				$skipped[] = array( 'key' => $key, 'reason' => 'not an allowlisted setting' );
+				continue;
+			}
+			$entry = $map[ $key ];
+			if ( empty( $entry['writable'] ) ) {
+				$skipped[] = array( 'key' => $key, 'reason' => 'read-only' );
+				continue;
+			}
+			$coerced = $this->coerce_write( $entry, $value );
+			if ( is_wp_error( $coerced ) ) {
+				$skipped[] = array( 'key' => $key, 'reason' => $coerced->get_error_message() );
+				continue;
+			}
+			$stored = $coerced['store'];
+			update_option( $key, $stored );
+			$updated[ $key ] = $coerced['report'];
+			if ( $this->is_permalink_key( $key ) ) {
+				$permalink_change = true;
+			}
+		}
+
+		// flush_rewrite_rules() lives in wp-includes/rewrite.php and is loaded on
+		// every request (REST/WP-CLI included), so no on-demand require is needed —
+		// the function_exists guard is belt-and-suspenders for the unit harness.
+		$rewrite_flushed = false;
+		if ( $permalink_change && function_exists( 'flush_rewrite_rules' ) ) {
+			flush_rewrite_rules( false );
+			$rewrite_flushed = true;
+		}
+
+		return array(
+			'updated'         => $updated,
+			'skipped'         => $skipped,
+			'rewrite_flushed' => $rewrite_flushed,
+		);
+	}
+
+	/**
+	 * Coerce + validate a write value against its allowlist entry.
+	 *
+	 * Returns [ 'store' => <value for update_option>, 'report' => <clean JSON value> ]
+	 * or a WP_Error whose message becomes the skip reason.
+	 *
+	 * @param array $entry
+	 * @param mixed $value
+	 * @return array|\WP_Error
+	 */
+	private function coerce_write( array $entry, $value ) {
+		switch ( $entry['type'] ) {
+			case 'int':
+				if ( ! is_numeric( $value ) ) {
+					return new \WP_Error( 'invalid', 'invalid value for int' );
+				}
+				$n = (int) $value;
+				if ( isset( $entry['min'] ) ) {
+					$n = max( (int) $entry['min'], $n );
+				}
+				if ( isset( $entry['max'] ) ) {
+					$n = min( (int) $entry['max'], $n );
+				}
+				return array( 'store' => $n, 'report' => $n );
+
+			case 'bool':
+				$b = (bool) $value;
+				if ( is_string( $value ) ) {
+					$b = ! in_array( strtolower( $value ), array( '', '0', 'false', 'no', 'off' ), true );
+				}
+				return array( 'store' => $b ? '1' : '', 'report' => $b );
+
+			case 'enum':
+				$v = (string) $value;
+				if ( ! in_array( $v, (array) ( $entry['options'] ?? array() ), true ) ) {
+					return new \WP_Error( 'invalid', 'invalid value for enum' );
+				}
+				return array( 'store' => $v, 'report' => $v );
+
+			case 'string':
+			default:
+				$s = sanitize_text_field( (string) $value );
+				return array( 'store' => $s, 'report' => $s );
+		}
+	}
+
+	// ---------------------------------------------------------------------
+	// update-settings (registration)
 	// ---------------------------------------------------------------------
 
 	private function register_update_settings(): void {
