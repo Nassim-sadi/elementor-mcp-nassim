@@ -244,6 +244,10 @@ class EMCP_Tools_Plugin {
 			'emcp-tools/list-posts',
 			'emcp-tools/delete-post',
 			'emcp-tools/set-post-terms',
+
+			// WordPress settings (2) — curated site-settings read/update.
+			'emcp-tools/get-settings',
+			'emcp-tools/update-settings',
 		);
 	}
 
