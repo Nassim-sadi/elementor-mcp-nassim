@@ -76,4 +76,44 @@ class UserToolsTest extends Ability_Test_Case {
 	public function test_get_user_requires_id(): void {
 		$this->assertWPError( $this->ability->execute_get_user( array() ), 'missing_params' );
 	}
+
+	/** @test */
+	public function test_create_user_makes_subscriber_and_emails_no_password_returned(): void {
+		$GLOBALS['_wp_next_user_id'] = 555;
+		$out = $this->ability->execute_create_user( array( 'username' => 'newbie', 'email' => 'newbie@example.com' ) );
+		$this->assertNotWPError( $out );
+		$this->assertSame( 555, $out['id'] );
+		$this->assertSame( 'subscriber', $out['role'] );
+		$this->assertArrayNotHasKey( 'password', $out );
+		$this->assertArrayNotHasKey( 'generated_password', $out );
+		$this->assertStringNotContainsStringIgnoringCase( 'GENERATED-PASSWORD', json_encode( $out ) );
+		// notification sent.
+		$this->assertNotEmpty( $GLOBALS['_wp_new_user_notifications'] );
+		// a password was generated and passed to wp_insert_user.
+		$this->assertArrayHasKey( 'user_pass', $GLOBALS['_wp_inserted_users'][0] );
+	}
+
+	/** @test */
+	public function test_create_user_rejects_admin_role(): void {
+		$out = $this->ability->execute_create_user( array( 'username' => 'evil', 'email' => 'evil@example.com', 'role' => 'administrator' ) );
+		$this->assertWPError( $out, 'forbidden_role' );
+		$this->assertSame( array(), $GLOBALS['_wp_inserted_users'] );
+	}
+
+	/** @test */
+	public function test_create_user_rejects_unknown_role(): void {
+		$this->assertWPError( $this->ability->execute_create_user( array( 'username' => 'x', 'email' => 'x@example.com', 'role' => 'wizard' ) ), 'forbidden_role' );
+	}
+
+	/** @test */
+	public function test_create_user_requires_username_and_email(): void {
+		$this->assertWPError( $this->ability->execute_create_user( array( 'email' => 'a@b.com' ) ), 'missing_params' );
+		$this->assertWPError( $this->ability->execute_create_user( array( 'username' => 'a' ) ), 'missing_params' );
+	}
+
+	/** @test */
+	public function test_create_user_surfaces_insert_error(): void {
+		$GLOBALS['_wp_insert_user_error'] = 'username exists';
+		$this->assertWPError( $this->ability->execute_create_user( array( 'username' => 'dup', 'email' => 'dup@example.com' ) ), 'insert_failed' );
+	}
 }

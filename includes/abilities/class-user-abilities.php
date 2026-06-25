@@ -251,10 +251,102 @@ class EMCP_Tools_User_Abilities {
 	}
 
 	// -------------------------------------------------------------------
-	// create-user (stub — implemented in Task 3)
+	// create-user
 	// -------------------------------------------------------------------
 
-	private function register_create_user(): void {}
+	private function register_create_user(): void {
+		$this->ability_names[] = 'emcp-tools/create-user';
+		emcp_tools_register_ability(
+			'emcp-tools/create-user',
+			array(
+				'label'               => __( 'Create User', 'emcp-tools' ),
+				'description'         => __( 'Creates a new non-admin WordPress user. A strong password is generated automatically and the user is emailed a set-password link — the password is never returned. The role defaults to subscriber and cannot be an administrator or any admin-grade role.', 'emcp-tools' ),
+				'category'            => 'emcp-tools',
+				'execute_callback'    => array( $this, 'execute_create_user' ),
+				'permission_callback' => array( $this, 'can_create' ),
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'username'     => array( 'type' => 'string', 'description' => __( 'The login username.', 'emcp-tools' ) ),
+						'email'        => array( 'type' => 'string', 'description' => __( 'Email address (must be unique).', 'emcp-tools' ) ),
+						'role'         => array( 'type' => 'string', 'description' => __( 'Role slug (non-admin). Default: subscriber.', 'emcp-tools' ) ),
+						'first_name'   => array( 'type' => 'string' ),
+						'last_name'    => array( 'type' => 'string' ),
+						'display_name' => array( 'type' => 'string' ),
+						'url'          => array( 'type' => 'string' ),
+						'description'  => array( 'type' => 'string' ),
+					),
+					'required'   => array( 'username', 'email' ),
+				),
+				'output_schema'       => array( 'type' => 'object', 'properties' => array(
+					'id' => array( 'type' => 'integer' ), 'username' => array( 'type' => 'string' ),
+					'email' => array( 'type' => 'string' ), 'role' => array( 'type' => 'string' ),
+					'edit_link' => array( 'type' => 'string' ),
+				) ),
+				'meta'                => array( 'annotations' => array( 'readonly' => false, 'destructive' => false, 'idempotent' => false ), 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * @param array $input
+	 * @return array|\WP_Error
+	 */
+	public function execute_create_user( $input ) {
+		$username = sanitize_user( (string) ( $input['username'] ?? '' ), true );
+		$email    = sanitize_email( (string) ( $input['email'] ?? '' ) );
+		if ( '' === $username || '' === $email ) {
+			return new \WP_Error( 'missing_params', __( 'Both "username" and "email" are required.', 'emcp-tools' ) );
+		}
+		if ( ! is_email( $email ) ) {
+			return new \WP_Error( 'invalid_email', __( 'That email address is not valid.', 'emcp-tools' ) );
+		}
+
+		$role = sanitize_key( $input['role'] ?? '' );
+		if ( '' === $role ) {
+			$role = 'subscriber';
+		}
+		if ( ! get_role( $role ) ) {
+			return new \WP_Error( 'forbidden_role', sprintf( /* translators: %s: role */ __( 'Unknown role "%s".', 'emcp-tools' ), $role ) );
+		}
+		if ( $this->role_has_admin_caps( $role ) ) {
+			return new \WP_Error( 'forbidden_role', __( 'Refusing to create a user with an admin-level role via MCP.', 'emcp-tools' ) );
+		}
+
+		$userdata = array(
+			'user_login' => $username,
+			'user_email' => $email,
+			'user_pass'  => wp_generate_password( 24, true, true ),
+			'role'       => $role,
+		);
+		foreach ( array( 'first_name' => 'first_name', 'last_name' => 'last_name', 'display_name' => 'display_name', 'description' => 'description' ) as $in => $key ) {
+			if ( array_key_exists( $in, $input ) ) {
+				$userdata[ $key ] = sanitize_text_field( (string) $input[ $in ] );
+			}
+		}
+		if ( array_key_exists( 'url', $input ) ) {
+			$userdata['user_url'] = esc_url_raw( (string) $input['url'] );
+		}
+
+		$user_id = wp_insert_user( $userdata );
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+		$user_id = (int) $user_id;
+
+		// Email the new user a set-password link. The password is NEVER returned.
+		if ( function_exists( 'wp_send_new_user_notifications' ) ) {
+			wp_send_new_user_notifications( $user_id, 'user' );
+		}
+
+		return array(
+			'id'        => $user_id,
+			'username'  => $username,
+			'email'     => $email,
+			'role'      => $role,
+			'edit_link' => admin_url( 'user-edit.php?user_id=' . $user_id ),
+		);
+	}
 
 	// -------------------------------------------------------------------
 	// update-user (stub — implemented in Task 4)
