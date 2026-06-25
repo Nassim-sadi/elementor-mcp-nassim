@@ -38,6 +38,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 - **WordPress Content (beyond Elementor)** — Create and manage posts, pages, and any custom post type — content, status, taxonomy terms, custom fields, and featured images — via MCP, without touching Elementor data. Built on WP core; every post carries an `is_elementor` flag that steers agents to the Elementor tools for builder pages
 - **WordPress Settings (beyond Elementor, domain 2)** — Read and batch-update core WordPress settings (general/reading/writing/discussion/media/permalinks) over MCP. Curated allowlist only — no arbitrary option access; `admin_email` is read-only; permalink changes auto-flush rewrite rules. `manage_options`. (v3.0.0)
 - **Plugins & Themes (beyond Elementor, domain 3)** — Discover, install (wordpress.org only), update, activate/deactivate, and delete plugins and themes over MCP. Strong guardrails (EMCP Tools + Elementor protected; per-op capability gating; direct-filesystem-only); the 9 mutation tools ship disabled-by-default. `manage_options`-class capabilities. (v3.0.0)
+- **Media Library (beyond Elementor, domain 4)** — Fetch full attachment detail (`get-media`: every registered size, dimensions, metadata, alt/caption/description), edit metadata (`update-media`: alt text, title, caption, description — a one-call accessibility/SEO fix), and delete attachments (`delete-media`: destructive and effectively permanent; disabled-by-default and requires `confirm:true`). URL uploads continue via `sideload-image`. (v3.0.0)
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
@@ -300,6 +301,16 @@ Discover and manage WordPress plugins and themes over MCP — built on WP core u
 | `switch-theme` | Switch the active theme by stylesheet slug (`switch_themes`) |
 | `update-theme` | Update an installed theme to the latest wordpress.org version (`update_themes`) |
 | `delete-theme` | Permanently delete an inactive, unprotected theme (`delete_themes`) |
+
+### WordPress Media Library — beyond Elementor, domain 4 (3 tools, v3.0.0)
+
+Manage existing Media Library attachments over MCP — built on WP core attachment functions. `get-media` and `update-media` are **enabled by default**; `delete-media` ships **disabled-by-default** and additionally requires an explicit `confirm:true` (destructive and effectively permanent — WordPress bypasses Trash for media unless `MEDIA_TRASH` is defined). URL uploads continue to use the existing `sideload-image`.
+
+| Tool | Description |
+|---|---|
+| `get-media` | Full detail for one attachment — every registered image size (URL + dimensions), mime type, filesize, alt text, caption, description, and raw attachment metadata (read-only, `edit_posts`) |
+| `update-media` | Edit an attachment's title, alt text, caption, and/or description — only the fields you pass change (`edit_post` on ID) |
+| `delete-media` | Delete an attachment; **destructive and effectively permanent**; disabled-by-default; requires `confirm:true`; pass `force:true` to skip Trash even when `MEDIA_TRASH` is defined (`delete_post` on ID) |
 
 ### Page Management (5 tools)
 

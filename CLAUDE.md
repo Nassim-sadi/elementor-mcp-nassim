@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~70 MCP tools (scales with environment). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings; and (5) **domain 3 — 13 WordPress Plugins & Themes tools** (discover/install/update/activate/delete plugins and themes; wordpress.org-only; writes disabled-by-default).
+MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~70 MCP tools (scales with environment). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings; (5) **domain 3 — 13 WordPress Plugins & Themes tools** (discover/install/update/activate/delete plugins and themes; wordpress.org-only; writes disabled-by-default); and (6) **domain 4 — 3 WordPress Media Library tools** (`get-media`/`update-media`/`delete-media`) to fetch attachment detail, edit metadata, and delete attachments — `delete-media` ships disabled-by-default and requires `confirm:true`.
 
 ## Companion projects (sibling folders, edit from here)
 
@@ -15,7 +15,7 @@ MCP Tools for Elementor Plugin — a WordPress plugin that extends the official 
 
 When editing premium-prompts behavior, the plugin code (`includes/admin/class-pro-prompts.php`) and the website's API endpoint (`website/src/pages/api/emcp/prompts.json.ts` per the PLAN) must stay in sync via the contract in `docs/PREMIUM_PROMPTS_API.md`.
 
-**Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, the catalog-backed widget consolidation, the namespace rename, and the three beyond-Elementor domains (8 WordPress Content tools + 2 WordPress Settings tools + 13 WordPress Plugins & Themes tools), all shipping together as the single 3.0.0 release.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, 8 general-WordPress content tools, 2 WordPress settings tools, 13 plugins & themes tools, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
+**Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, the catalog-backed widget consolidation, the namespace rename, and the four beyond-Elementor domains (8 WordPress Content tools + 2 WordPress Settings tools + 13 WordPress Plugins & Themes tools + 3 WordPress Media Library tools), all shipping together as the single 3.0.0 release.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, 8 general-WordPress content tools, 2 WordPress settings tools, 13 plugins & themes tools, 3 media library tools, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
 
 **Tool counts by configuration (v3.0.0 — the beyond-Elementor surface adds the 8 Content tools + 3 surfaced `core/*` abilities + 2 Settings tools + 13 Plugins & Themes tools, of which 4 read/search tools are enabled-by-default and 9 mutation tools ship disabled-by-default — estimates pending a fresh live count):**
 - Free Elementor only: **~61** (44 base + 13 Content/core*/Settings + 4 P&T reads enabled)
@@ -25,7 +25,7 @@ When editing premium-prompts behavior, the plugin code (`includes/admin/class-pr
 - With Pro + WooCommerce + Elementor 4.0+: **~101** — WooCommerce widgets are reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
 - Low-tools mode (any config): still available but largely obsolete — the consolidation already keeps the surface well under common client caps.
 
-> The beyond-Elementor surface in v3.0.0 adds: 8 Content + 3 `core/*` + 2 Settings + 13 Plugins & Themes. Of those 26, the 9 Plugins & Themes mutation tools ship disabled-by-default (admin opts in on the Tools tab), so the net enabled-by-default addition is +17. The separate 21 disabled-by-default group (SEO/A11y, Widget Builder, PHP Snippets) is unchanged. All counts above are estimates pending a fresh live `tools/list` after the Plugins & Themes domain is deployed.
+> The beyond-Elementor surface in v3.0.0 adds: 8 Content + 3 `core/*` + 2 Settings + 13 Plugins & Themes + 3 Media Library. Of those 29, the 9 Plugins & Themes mutation tools and 1 Media Library delete tool ship disabled-by-default (admin opts in on the Tools tab), so the net enabled-by-default addition is +19. The separate 21 disabled-by-default group (SEO/A11y, Widget Builder, PHP Snippets) is unchanged. All counts above are estimates pending a fresh live `tools/list` after all beyond-Elementor domains are deployed.
 
 > **These are REGISTERED counts.** Three groups ship **disabled-by-default** — SEO & Accessibility (**7**, Pro), Widget Builder (**8**, Pro), and PHP Snippets / Sandbox (**6**, free) = **21** tools registered-but-off. So the typical **active** surface is ~21 smaller until a user enables them on the Tools tab (e.g. Pro + Elementor 4.0+ ≈ **63** active by default).
 >
@@ -209,6 +209,18 @@ Discover and manage WordPress plugins and themes over MCP — built on WP core u
 | `emcp-tools/update-theme` | Update an installed theme to the latest wordpress.org version (direct FS required) |
 | `emcp-tools/delete-theme` | Permanently delete an inactive, unprotected theme (direct FS required) |
 
+### WordPress Media Library — domain 4 (3 tools, v3.0.0)
+
+Manage existing Media Library attachments over MCP — built on WP core attachment functions (`get_post`, `wp_get_attachment_metadata`, `wp_get_attachment_image_src`, `wp_get_attachment_url`, `wp_update_post`, `update_post_meta`, `wp_delete_attachment`). `get-media` and `update-media` are **enabled by default**; `delete-media` ships **disabled-by-default**.
+
+**Three-way delete gate:** `delete-media` requires (1) it is enabled in the Tools tab (disabled-by-default), (2) the caller has `delete_post` on the attachment ID, and (3) an explicit `confirm:true` in the tool input. WordPress bypasses Trash for media unless the `MEDIA_TRASH` constant is defined — so deletion is effectively permanent on most sites. Pass `force:true` to skip Trash even when `MEDIA_TRASH` is on. URL uploads continue to use the existing `sideload-image`.
+
+| Ability Name | Purpose |
+|---|---|
+| `emcp-tools/get-media` | Full detail for one attachment — every registered image size (URL + dimensions), mime type, filesize, alt text, caption, description, raw attachment metadata. Read-only (`edit_posts`). |
+| `emcp-tools/update-media` | Edit an attachment's title, alt text, caption, and/or description. Only fields passed in the input change (`edit_post` on attachment ID). |
+| `emcp-tools/delete-media` | Delete an attachment; **destructive and effectively permanent**; disabled-by-default; requires `confirm:true`; pass `force:true` to skip Trash even when `MEDIA_TRASH` is defined (`delete_post` on attachment ID). |
+
 ### P1 — Page CRUD (5 tools)
 
 | Ability Name | Purpose |
@@ -260,11 +272,14 @@ The 62 per-widget convenience tools and the old universal `add-widget` were remo
 |---|---|
 | `emcp-tools/build-page` | Create complete page from declarative structure in one call |
 
-### Media Library (1 tool)
+### Media Library (4 tools total — 1 legacy + 3 domain-4 additions, v3.0.0)
 
 | Ability Name | Purpose |
 |---|---|
 | `emcp-tools/list-media` | List/search images already in the WordPress Media Library (the site's own uploads). Optional `search` matches title, alt text, caption, and description; `mime_type` / pagination / sort filters. Read-only WP_Query, no HTTP. ([#25](https://github.com/msrbuilds/elementor-mcp/issues/25)) |
+| `emcp-tools/get-media` | Full detail for one attachment — every registered image size (URL + dimensions), mime type, filesize, alt text, caption, description, raw attachment metadata. Read-only. (v3.0.0) |
+| `emcp-tools/update-media` | Edit an attachment's title, alt text, caption, and/or description. Only fields passed change. (v3.0.0) |
+| `emcp-tools/delete-media` | Delete an attachment; **destructive and effectively permanent**; disabled-by-default; requires `confirm:true`. (v3.0.0) |
 
 ### Stock Images (3 tools)
 
