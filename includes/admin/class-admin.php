@@ -161,7 +161,7 @@ class EMCP_Tools_Admin {
 	 *
 	 * @since 1.8.0
 	 */
-	const DEFAULTS_VERSION = 7;
+	const DEFAULTS_VERSION = 8;
 
 	/**
 	 * SEO/A11y Pro MCP tool slugs that ship disabled-by-default (v2 defaults).
@@ -257,6 +257,18 @@ class EMCP_Tools_Admin {
 	}
 
 	/**
+	 * Users mutation tool slugs that ship disabled-by-default. The reads
+	 * (list-users/get-user) stay enabled. The admin opts in on the Tools tab.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return string[]
+	 */
+	public static function user_write_tool_slugs(): array {
+		return array( 'emcp-tools/create-user', 'emcp-tools/update-user' );
+	}
+
+	/**
 	 * Seeds default disabled-tools on install/upgrade so new Pro tool batches
 	 * ship off-by-default (keeping sites under client tool caps), then records
 	 * the applied version. Each version step adds ONLY its newly-introduced
@@ -322,6 +334,11 @@ class EMCP_Tools_Admin {
 		// v7 — delete-media ships disabled-by-default (permanent deletion).
 		if ( $applied < 7 ) {
 			$add = array_merge( $add, self::media_write_tool_slugs() );
+		}
+
+		// v8 — Users mutation tools ship disabled-by-default (account changes).
+		if ( $applied < 8 ) {
+			$add = array_merge( $add, self::user_write_tool_slugs() );
 		}
 
 		$merged = array_values( array_unique( array_merge( $existing, $add ) ) );
@@ -1270,6 +1287,31 @@ class EMCP_Tools_Admin {
 						'label'       => __( 'Delete Theme', 'emcp-tools' ),
 						'description' => __( 'Permanently deletes an inactive theme.', 'emcp-tools' ),
 						'badges'      => array( 'destructive' ),
+					),
+				),
+			),
+			'wp_users'         => array(
+				'label' => __( 'Users', 'emcp-tools' ),
+				'tools' => array(
+					'emcp-tools/list-users'   => array(
+						'label'       => __( 'List Users', 'emcp-tools' ),
+						'description' => __( 'Lists users (admin-only); filter by role/search.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/get-user'     => array(
+						'label'       => __( 'Get User', 'emcp-tools' ),
+						'description' => __( 'Returns one user\'s profile detail.', 'emcp-tools' ),
+						'badges'      => array( 'read-only' ),
+					),
+					'emcp-tools/create-user'  => array(
+						'label'       => __( 'Create User', 'emcp-tools' ),
+						'description' => __( 'Creates a non-admin user; auto-password + email.', 'emcp-tools' ),
+						'badges'      => array(),
+					),
+					'emcp-tools/update-user'  => array(
+						'label'       => __( 'Update User', 'emcp-tools' ),
+						'description' => __( 'Edits a non-admin user\'s profile (no role/password; admins refused).', 'emcp-tools' ),
+						'badges'      => array(),
 					),
 				),
 			),

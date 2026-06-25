@@ -38,6 +38,9 @@
         <testsuite name="Media">
             <directory>tests/unit/media</directory>
         </testsuite>
+        <testsuite name="Users">
+            <directory>tests/unit/users</directory>
+        </testsuite>
     </testsuites>
 
     <source>
