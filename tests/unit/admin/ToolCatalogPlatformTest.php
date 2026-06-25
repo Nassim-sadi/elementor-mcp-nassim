@@ -19,6 +19,14 @@ class ToolCatalogPlatformTest extends TestCase {
 	}
 
 	/** @test */
+	public function test_partition_empty_input_returns_two_empty_buckets(): void {
+		$buckets = \EMCP_Tools_Admin::partition_by_platform( array() );
+		$this->assertSame( array( 'elementor', 'wordpress' ), array_keys( $buckets ) );
+		$this->assertSame( array(), $buckets['elementor'] );
+		$this->assertSame( array(), $buckets['wordpress'] );
+	}
+
+	/** @test */
 	public function test_partition_groups_by_platform(): void {
 		$cats = array(
 			'query'      => array( 'label' => 'Query', 'platform' => 'elementor', 'tools' => array() ),

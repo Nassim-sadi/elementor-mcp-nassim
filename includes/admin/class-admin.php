@@ -1623,6 +1623,7 @@ class EMCP_Tools_Admin {
 		// here to avoid showing toggles for tools that don't exist.
 		if ( class_exists( 'EMCP_Tools_Atomic_Props' ) && EMCP_Tools_Atomic_Props::is_atomic_supported() ) {
 			$tools['atomic_layout'] = array(
+				'platform' => 'elementor',
 				'label' => __( 'Atomic Layout (Elementor 4.0+)', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/detect-elementor-version' => array(
@@ -1649,6 +1650,7 @@ class EMCP_Tools_Admin {
 			);
 
 			$tools['atomic_widgets'] = array(
+				'platform' => 'elementor',
 				'label' => __( 'Atomic Widgets (Elementor 4.0+)', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/add-atomic-widget'    => array(
@@ -1714,6 +1716,7 @@ class EMCP_Tools_Admin {
 			&& EMCP_Tools_Pro_Brand_Kits::user_has_access()
 		) {
 			$tools['brand_kits'] = array(
+				'platform' => 'elementor',
 				'label' => __( 'Brand Kits', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-brand-kits'           => array(
