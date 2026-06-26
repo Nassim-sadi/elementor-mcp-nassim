@@ -10,7 +10,7 @@
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D8.0-8892BF.svg)](https://php.net)
 [![WordPress](https://img.shields.io/badge/WordPress-%3E%3D6.9-21759B.svg)](https://wordpress.org)
 [![Elementor](https://img.shields.io/badge/Elementor-%3E%3D3.20-92003B.svg)](https://elementor.com)
-[![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20120-orange.svg)](#available-tools)
+[![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20118-orange.svg)](#available-tools)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub Issues](https://img.shields.io/github/issues/msrbuilds/elementor-mcp)](https://github.com/msrbuilds/elementor-mcp/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/msrbuilds/elementor-mcp?style=social)](https://github.com/msrbuilds/elementor-mcp)
@@ -23,23 +23,24 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 
 # Introducing EMCP Pro! 25% Discount for GitHub Community: MSRGIT
-## [Grab the Deal](https://emcp.msrbuilds.com/pricing)
+## [Grab the Deal](https://emcptools.com/pricing)
 <img width="1697" height="250" alt="image" src="https://github.com/user-attachments/assets/f588d365-1986-4132-90d3-4d44a28da464" />
 
 
 ## Features
 
-- **A focused MCP toolset** covering the full Elementor page-building workflow — and, as of v3.0.0, growing beyond Elementor into general WordPress content and site management (content, settings, plugins, and themes). As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment (the v3.0.0 numbers below add the 8 WordPress Content tools + 3 surfaced core abilities + 2 Settings tools + 13 Plugins & Themes tools, of which 4 read/search tools are enabled by default and 9 mutation tools ship disabled-by-default — estimates pending a fresh live count):
-  - ~57 tools — free Elementor only
-  - ~71 tools — free Elementor + Elementor 4.0 atomic elements
-  - ~83 tools — with Elementor Pro
-  - ~97 tools — with Elementor Pro + Elementor 4.0 (and + WooCommerce, which adds no new tools)
-  - ~21 of these (SEO & Accessibility, Widget Builder, PHP Snippets) ship **disabled-by-default**, so the typical active surface is smaller
+- **A focused MCP toolset** covering the full Elementor page-building workflow — and, as of v3.0.0, growing beyond Elementor into general WordPress management across five domains: content, settings, plugins & themes, media library, and users. As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment (registered counts, live-verified on Elementor 4.1.4):
+  - **94 tools** — free Elementor only (76 active by default)
+  - **108 tools** — free Elementor + Elementor 4.0 atomic elements (90 active)
+  - **104 tools** — with Elementor Pro (71 active)
+  - **118 tools** — with Elementor Pro + Elementor 4.0 (85 active; + WooCommerce adds no new tools)
+  - **33 of these ship disabled-by-default** (SEO & Accessibility, Widget Builder, PHP Snippets, the 9 Plugins & Themes write tools, `delete-media`, and the 2 Users write tools), so the typical active surface is smaller until you opt in on the Tools tab
 - **WordPress Content (beyond Elementor)** — Create and manage posts, pages, and any custom post type — content, status, taxonomy terms, custom fields, and featured images — via MCP, without touching Elementor data. Built on WP core; every post carries an `is_elementor` flag that steers agents to the Elementor tools for builder pages
 - **WordPress Settings (beyond Elementor, domain 2)** — Read and batch-update core WordPress settings (general/reading/writing/discussion/media/permalinks) over MCP. Curated allowlist only — no arbitrary option access; `admin_email` is read-only; permalink changes auto-flush rewrite rules. `manage_options`. (v3.0.0)
 - **Plugins & Themes (beyond Elementor, domain 3)** — Discover, install (wordpress.org only), update, activate/deactivate, and delete plugins and themes over MCP. Strong guardrails (EMCP Tools + Elementor protected; per-op capability gating; direct-filesystem-only); the 9 mutation tools ship disabled-by-default. `manage_options`-class capabilities. (v3.0.0)
 - **Media Library (beyond Elementor, domain 4)** — Fetch full attachment detail (`get-media`: every registered size, dimensions, metadata, alt/caption/description), edit metadata (`update-media`: alt text, title, caption, description — a one-call accessibility/SEO fix), and delete attachments (`delete-media`: destructive and effectively permanent; disabled-by-default and requires `confirm:true`). URL uploads continue via `sideload-image`. (v3.0.0)
 - **Users (beyond Elementor, domain 5)** — List and read WordPress users, and safely create/edit non-admin profiles over MCP. Hard guardrails: no delete-user and no role-change tool; `create-user` assigns only non-admin roles and auto-generates a strong password (emailed to the new user — never returned); `update-user` edits profile fields only and refuses any user with admin-level capabilities (administrators are off-limits). `list-users`/`get-user` are enabled by default; `create-user`/`update-user` are disabled-by-default. (v3.0.0)
+- **Performance Analyzer (beyond Elementor, domain 6)** — Audit server config, WordPress internals (database size, autoloaded options, post revisions, cron backlog, persistent object cache, OPcache, plugin count), and a target page (defaults to the frontpage; optional `url`/`post_id`) for performance bottlenecks. Returns a scored report (0-100 + A–F grade) with severity-tagged findings (`server`/`database`/`config`/`page`/`assets`) and ranked recommendations. Read-only, self-contained (no external API), same-host-enforced loopback fetch, enabled by default. (v3.0.0)
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
@@ -73,11 +74,10 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 ## Installation
 
 1. Install and activate [Elementor](https://wordpress.org/plugins/elementor/) (version 3.20+).
-2. Install and activate the [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter) plugin.
-3. Download the latest release zip from the [Releases page](https://github.com/msrbuilds/elementor-mcp/releases/).
-4. In WordPress, go to **Plugins > Add New > Upload Plugin** and upload the downloaded zip file.
-5. Activate the plugin through the **Plugins** menu in WordPress.
-6. Open the new **EMCP Tools** top-level menu in the WordPress admin sidebar to configure tools and view connection info.
+2. Download the latest release zip from the [Releases page](https://github.com/msrbuilds/elementor-mcp/releases/).
+3. In WordPress, go to **Plugins > Add New > Upload Plugin** and upload the downloaded zip file.
+4. Activate the plugin through the **Plugins** menu in WordPress. The WordPress MCP Adapter is **bundled** — no separate install needed (WordPress 6.9+/7.0 already includes the Abilities API).
+5. Open the new **EMCP Tools** top-level menu in the WordPress admin sidebar to configure tools and view connection info.
 
 ## Connecting to the MCP Server
 
@@ -323,6 +323,14 @@ Safe user management over MCP — built on WP core user functions (`WP_User_Quer
 | `get-user` | Full profile detail for one user — adds first/last name, nickname, URL, description, and an `is_admin` flag (true users are off-limits to `update-user`) (read-only, `list_users`) |
 | `create-user` | Create a new non-admin WordPress user. A strong password is auto-generated and emailed; the password is never returned. Role defaults to `subscriber`; administrator and any admin-grade role are refused (`create_users`) |
 | `update-user` | Update a non-admin user's profile (email, first/last name, display name, nickname, URL, description). Cannot change roles or passwords; refuses any user with admin-level capabilities (`edit_users`) |
+
+### WordPress Performance — beyond Elementor, domain 6 (1 tool, v3.0.0)
+
+Read-only performance diagnostic over MCP, self-contained (no external API). Audits server config + WordPress internals in-process and analyzes a target page via a same-host-enforced loopback fetch (rejects off-host URLs and off-host redirects). Degrades gracefully when the page fetch is blocked. `manage_options`; enabled by default.
+
+| Tool | Description |
+|---|---|
+| `analyze-performance` | Audit server config, WordPress internals (DB size, autoloaded options, revisions, cron backlog, object cache, OPcache, plugin count), and a target page (default frontpage; optional `url`/`post_id`) for bottlenecks. Returns a scored report (0-100 + A–F grade) grouped into `server`/`database`/`config`/`page`/`assets` with ranked `top_recommendations` (read-only, `manage_options`) |
 
 ### Page Management (5 tools)
 

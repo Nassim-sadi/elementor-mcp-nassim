@@ -4,30 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~70 MCP tools (scales with environment). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings; (5) **domain 3 — 13 WordPress Plugins & Themes tools** (discover/install/update/activate/delete plugins and themes; wordpress.org-only; writes disabled-by-default); (6) **domain 4 — 3 WordPress Media Library tools** (`get-media`/`update-media`/`delete-media`) to fetch attachment detail, edit metadata, and delete attachments — `delete-media` ships disabled-by-default and requires `confirm:true`; and (7) **domain 5 — 4 WordPress Users tools** (`list-users`/`get-user`/`create-user`/`update-user`) for safe user management — reads enabled-by-default, writes disabled-by-default, no delete/role-change tool, administrators untouchable via MCP.
+MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~118 MCP tools (scales with environment; see live-verified counts below). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings; (5) **domain 3 — 13 WordPress Plugins & Themes tools** (discover/install/update/activate/delete plugins and themes; wordpress.org-only; writes disabled-by-default); (6) **domain 4 — 3 WordPress Media Library tools** (`get-media`/`update-media`/`delete-media`) to fetch attachment detail, edit metadata, and delete attachments — `delete-media` ships disabled-by-default and requires `confirm:true`; and (7) **domain 5 — 4 WordPress Users tools** (`list-users`/`get-user`/`create-user`/`update-user`) for safe user management — reads enabled-by-default, writes disabled-by-default, no delete/role-change tool, administrators untouchable via MCP.
 
 ## Companion projects (sibling folders, edit from here)
 
 | Project | Path | What it is |
 |---|---|---|
 | **Master prompts library** | `E:\MSR Builds\Products\EMCP\prompts\` | Source-of-truth markdown files for the 50+ Premium Prompts. 10 categories (Automotive, Food & Dining, General, Health & Wellness, Home Services, Lifestyle & Entertainment, Pets, Professional Services, Retail, Weddings). Never bundled in the plugin zip. |
-| **Website + docs + API** | `E:\MSR Builds\Products\EMCP\website\` | Astro 5 + Starlight + Tailwind + Postgres + Drizzle. Hosts the marketing site, comprehensive docs, and the `/api/emcp/prompts.json` license-gated endpoint the plugin's Pro Prompts page fetches from. See `website/PLAN.md` for the full implementation spec. Hosted via Dokploy at `emcp.msrbuilds.com` (planned). |
+| **Website + docs + API** | `E:\MSR Builds\Products\EMCP\website\` | Astro 5 + Starlight + Tailwind + Postgres + Drizzle. Hosts the marketing site, comprehensive docs, and the `/api/emcp/prompts.json` license-gated endpoint the plugin's Pro Prompts page fetches from. See `website/PLAN.md` for the full implementation spec. Hosted via Dokploy at `emcptools.com` (planned). |
 
 When editing premium-prompts behavior, the plugin code (`includes/admin/class-pro-prompts.php`) and the website's API endpoint (`website/src/pages/api/emcp/prompts.json.ts` per the PLAN) must stay in sync via the contract in `docs/PREMIUM_PROMPTS_API.md`.
 
 **Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, the catalog-backed widget consolidation, the namespace rename, and the five beyond-Elementor domains (8 WordPress Content tools + 2 WordPress Settings tools + 13 WordPress Plugins & Themes tools + 3 WordPress Media Library tools + 4 WordPress Users tools), all shipping together as the single 3.0.0 release.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, 8 general-WordPress content tools, 2 WordPress settings tools, 13 plugins & themes tools, 3 media library tools, 4 WordPress users tools, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
 
-**Tool counts by configuration (v3.0.0 — the beyond-Elementor surface adds the 8 Content tools + 3 surfaced `core/*` abilities + 2 Settings tools + 13 Plugins & Themes tools + 3 Media Library tools + 4 Users tools, of which 4 P&T read/search tools + 2 User reads are enabled-by-default and 9 P&T mutation tools + 1 Media delete + 2 User writes ship disabled-by-default — estimates pending a fresh live count):**
-- Free Elementor only: **~63** (44 base + 13 Content/core*/Settings + 4 P&T reads + 2 User reads enabled)
-- Free Elementor + Elementor 4.0+ atomic: **~77** (58 base + 13 + 4 + 2)
-- With Elementor Pro: **~89** (70 base + 13 + 4 + 2)
-- With Elementor Pro + Elementor 4.0+: **~103** (84 base + 13 + 4 + 2) — estimates pending a fresh live `tools/list`
-- With Pro + WooCommerce + Elementor 4.0+: **~103** — WooCommerce widgets are reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
+**Tool counts by configuration (v3.0.0 — REGISTERED counts, live-verified via `WP_Abilities_Registry` on Elementor 4.1.4 + Pro, 2026-06-26; each total = `emcp-tools/*` + the 3 surfaced `core/*` abilities):**
+- Free Elementor only: **94** (91 emcp + 3 core) — **76** active by default
+- Free Elementor + Elementor 4.0+ atomic: **108** (105 + 3) — **90** active by default
+- With Elementor Pro: **104** (101 + 3) — **71** active by default
+- With Elementor Pro + Elementor 4.0+: **118** (115 + 3) — **85** active by default
+- With Pro + WooCommerce + Elementor 4.0+: **118** — WooCommerce widgets are reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
 - Low-tools mode (any config): still available but largely obsolete — the consolidation already keeps the surface well under common client caps.
 
-> The beyond-Elementor surface in v3.0.0 adds: 8 Content + 3 `core/*` + 2 Settings + 13 Plugins & Themes + 3 Media Library + 4 Users = 33 tools. Of those 33, the 9 Plugins & Themes mutation tools, 1 Media Library delete tool, and 2 Users write tools ship disabled-by-default (admin opts in on the Tools tab), so the net enabled-by-default addition is +21. The separate 21 disabled-by-default group (SEO/A11y, Widget Builder, PHP Snippets) is unchanged. All counts above are estimates pending a fresh live `tools/list` after all beyond-Elementor domains are deployed.
+> The beyond-Elementor surface in v3.0.0 adds: 8 Content + 3 `core/*` + 2 Settings + 13 Plugins & Themes + 3 Media Library + 4 Users = 33 tools. Of those 33, the 9 Plugins & Themes mutation tools, 1 Media Library delete tool, and 2 Users write tools ship disabled-by-default (admin opts in on the Tools tab), so the net enabled-by-default addition is +21.
 
-> **These are REGISTERED counts.** Three groups ship **disabled-by-default** — SEO & Accessibility (**7**, Pro), Widget Builder (**8**, Pro), and PHP Snippets / Sandbox (**6**, free) = **21** tools registered-but-off. So the typical **active** surface is ~21 smaller until a user enables them on the Tools tab (e.g. Pro + Elementor 4.0+ ≈ **63** active by default).
+> **These are REGISTERED counts.** **33 tools ship disabled-by-default** — SEO & Accessibility (**7**, Pro), Widget Builder (**8**, Pro), PHP Snippets / Sandbox (**6**, free), the **9** Plugins & Themes write tools, **1** `delete-media`, and the **2** Users write tools. So the typical **active** surface is up to 33 smaller until a user enables them on the Tools tab (e.g. Pro + Elementor 4.0+ = **118** registered, **85** active by default). Verified reconciliation: 118 registered − 12 currently-off writes = 106 in the live `tools/list` when SEO/Widget-Builder/PHP-Snippets are manually enabled.
 >
 > **What the v3.0.0 consolidation changed.** Every per-widget convenience tool (62) plus the old universal `add-widget` were removed; `add-free-widget` (always) and `add-pro-widget` (Pro only) were added. The 62 curated widgets are now catalog DATA (27 free / 30 pro / 5 woo) served by `EMCP_Tools_Widget_Catalog`, not individual tools. The widget portion of the per-turn `tools/list` dropped from ~18–20k tokens to ~1.2k (the five widget tool schemas total ~5 KB). Verified end-to-end via the WP-CLI MCP stdio server: `tools/list` shows exactly the 5 widget tools and none of the 62 old names, and a real `add-container` → `add-free-widget` round-trip persists to `_elementor_data`.
 
@@ -152,7 +152,7 @@ The MCP Adapter converts ability names like `emcp-tools/list-widgets` to tool na
 | Code snippets (create) | `manage_options` + `unfiltered_html` |
 | Code snippets (list) | `manage_options` |
 
-## All Implemented Tools (up to ~101 with Pro + Elementor 4.0+ — see counts above)
+## All Implemented Tools (118 registered with Pro + Elementor 4.0+; 115 `emcp-tools/*` + 3 `core/*` — see counts above)
 
 ### P0 — Query/Discovery (7 read-only)
 
@@ -302,6 +302,14 @@ The 62 per-widget convenience tools and the old universal `add-widget` were remo
 | `emcp-tools/get-user` | Full profile detail for one user plus an `is_admin` flag. Read-only, enabled by default. |
 | `emcp-tools/create-user` | Create a new non-admin user; auto-generates a password and emails a set-password link — password never returned. Admin-grade roles refused. Disabled-by-default. |
 | `emcp-tools/update-user` | Edit a non-admin user's profile fields only (no role/password change; admins refused). Disabled-by-default. |
+
+### WordPress Performance — domain 6 (1 tool, v3.0.0)
+
+Read-only performance diagnostic over MCP, self-contained (no external API). Built on WP core (`$wpdb`, `wp_remote_get`, `_get_cron_array`, `DOMDocument`). Audits server config + WordPress internals in-process, and analyzes a target page via a **same-host-enforced loopback fetch** (rejects off-host URLs and off-host redirects). Returns a scored report (0-100 + A–F grade) grouped into `server`/`database`/`config`/`page`/`assets`, with ranked `top_recommendations`. Degrades gracefully when the loopback fetch is blocked. `manage_options`; enabled by default. Implemented in `includes/abilities/class-performance-abilities.php` + `includes/performance/class-performance-{finding,server-audit,page-audit,analyzer}.php`.
+
+| Ability Name | Purpose |
+|---|---|
+| `emcp-tools/analyze-performance` | Audit server config, WordPress internals (DB size, autoloaded options, revisions, cron backlog, object cache, OPcache, plugin count), and a target page (default frontpage; optional `url`/`post_id`) for bottlenecks; returns a scored, severity-tagged report with recommendations. Read-only. |
 
 ### Stock Images (3 tools)
 
