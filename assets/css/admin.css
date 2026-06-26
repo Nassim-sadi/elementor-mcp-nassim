@@ -314,7 +314,7 @@
 /* Secondary buttons (Enable All / Disable All) — match the plugin's header
    buttons (flat, neutral) instead of WordPress's blue defaults. */
 .elementor-mcp-bulk-actions .button {
-	padding: 4px 16px;
+	padding: 8px 16px;
 	font-size: 14px;
 	line-height: 1.3;
 	height: auto;
@@ -2708,3 +2708,31 @@
 	border-radius: 6px;
 }
 .elementor-mcp-lowmode-banner p { margin: 0; font-size: 13px; color: #2b2f44; }
+
+/* Connection-tab client picker */
+.elementor-mcp-client-grid {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( 150px, 1fr ) );
+	gap: 12px;
+	margin: 12px 0 20px;
+}
+.elementor-mcp-client-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 16px 12px;
+	background: #fff;
+	border: 1px solid var( --mcp-gray-300, #d1d5db );
+	border-radius: 8px;
+	cursor: pointer;
+	transition: border-color .15s, box-shadow .15s;
+}
+.elementor-mcp-client-card:hover { border-color: var( --mcp-primary, #6366f1 ); }
+.elementor-mcp-client-card.is-selected {
+	border-color: var( --mcp-primary, #6366f1 );
+	box-shadow: 0 0 0 1px var( --mcp-primary, #6366f1 ) inset;
+}
+.elementor-mcp-client-card .dashicons { font-size: 28px; width: 28px; height: 28px; color: var( --mcp-gray-600, #4b5563 ); }
+.elementor-mcp-client-card.is-selected .dashicons { color: var( --mcp-primary, #6366f1 ); }
+.elementor-mcp-client-card-label { font-weight: 600; font-size: 13px; text-align: center; }
