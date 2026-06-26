@@ -145,7 +145,11 @@ class EMCP_Tools_Admin {
 		add_action( 'wp_ajax_emcp_tools_save_php_snippet', array( $this, 'ajax_save_php_snippet' ) );
 		add_action( 'wp_ajax_emcp_tools_toggle_php_snippet', array( $this, 'ajax_toggle_php_snippet' ) );
 		add_action( 'wp_ajax_emcp_tools_delete_php_snippet', array( $this, 'ajax_delete_php_snippet' ) );
+		add_action( 'admin_post_emcp_tools_download_mcpb', array( $this, 'handle_download_mcpb' ) );
 	}
+
+	/** Nonce action for the .mcpb bundle download. */
+	const NONCE_DOWNLOAD_MCPB = 'emcp_tools_download_mcpb';
 
 	/**
 	 * Option that records which version of the default disabled-tools seeding
@@ -881,6 +885,59 @@ class EMCP_Tools_Admin {
 			wp_send_json_error( array( 'message' => $res->get_error_message() ), 400 );
 		}
 		wp_send_json_success( $res );
+	}
+
+	/**
+	 * admin-post.php callback: build + stream a Claude Desktop .mcpb bundle
+	 * with the chosen admin's credentials baked in. POST body: user_id,
+	 * app_password, _emcp_nonce. Halts execution at the end.
+	 *
+	 * @since 3.0.0
+	 */
+	public function handle_download_mcpb(): void {
+		if (
+			! isset( $_POST['_emcp_nonce'] )
+			|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_emcp_nonce'] ) ), self::NONCE_DOWNLOAD_MCPB )
+		) {
+			wp_die( esc_html__( 'Invalid request.', 'emcp-tools' ), '', array( 'response' => 403 ) );
+		}
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to download this.', 'emcp-tools' ), '', array( 'response' => 403 ) );
+		}
+
+		$user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
+		$user    = $user_id ? get_userdata( $user_id ) : false;
+		if ( ! $user || ! current_user_can( 'edit_user', $user_id ) || ! user_can( $user_id, 'manage_options' ) ) {
+			wp_die( esc_html__( 'Pick a valid administrator account.', 'emcp-tools' ), '', array( 'response' => 400 ) );
+		}
+
+		// The app password was generated on the page (Step 1) and POSTed back —
+		// same-origin, nonce-gated, the admin's own credential.
+		$app_password = isset( $_POST['app_password'] ) ? sanitize_text_field( wp_unslash( $_POST['app_password'] ) ) : '';
+		if ( '' === $app_password ) {
+			wp_die( esc_html__( 'Generate an Application Password first, then download the bundle.', 'emcp-tools' ), '', array( 'response' => 400 ) );
+		}
+
+		$manifest = EMCP_Tools_Mcpb_Builder::build_manifest( home_url(), $user->user_login, $app_password );
+		$tmp      = EMCP_Tools_Mcpb_Builder::build_zip( $manifest );
+		if ( is_wp_error( $tmp ) ) {
+			wp_die( esc_html( $tmp->get_error_message() ), '', array( 'response' => 500 ) );
+		}
+
+		$host     = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+		$filename = 'emcp-tools-' . sanitize_file_name( $host ?: 'site' ) . '.mcpb';
+
+		nocache_headers();
+		header( 'Content-Type: application/octet-stream' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		header( 'Content-Length: ' . filesize( $tmp ) );
+		header( 'X-Content-Type-Options: nosniff' );
+		while ( ob_get_level() > 0 ) {
+			ob_end_clean();
+		}
+		readfile( $tmp );
+		@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		exit;
 	}
 
 	/**
