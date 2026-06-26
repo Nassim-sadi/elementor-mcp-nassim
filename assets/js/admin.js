@@ -1302,6 +1302,68 @@
 		if ( card ) { emcpSelectClient( card.getAttribute( 'data-client' ) ); }
 	} );
 
+	// Context page: char/token counter, starter template, live preview.
+	function initContextPage() {
+		var ta = document.getElementById( 'elementor-mcp-context-text' );
+		if ( ! ta ) { return; }
+		var counter = document.getElementById( 'elementor-mcp-context-counter' );
+		var preview = document.getElementById( 'elementor-mcp-context-preview' );
+		var toggle  = document.querySelector( 'input[name="emcp_tools_site_context_enabled"]' );
+		var tplBtn  = document.getElementById( 'elementor-mcp-context-template' );
+		var max     = parseInt( ta.getAttribute( 'maxlength' ) || '20000', 10 );
+		var base    = ( emcpToolsAdmin && emcpToolsAdmin.siteContextBase ) || '';
+		var delim   = ( emcpToolsAdmin && emcpToolsAdmin.siteContextDelimiter ) || '\n\n## Site context\n\n';
+
+		function refresh() {
+			var len = ta.value.length;
+			var tokens = Math.ceil( len / 4 );
+			if ( counter ) {
+				counter.textContent = len + ' characters · ~' + tokens + ' tokens';
+				counter.classList.toggle( 'is-warn', len > max * 0.9 );
+			}
+			if ( preview ) {
+				var ctx = ta.value.replace( /^\s+|\s+$/g, '' );
+				var on = ! toggle || toggle.checked;
+				preview.textContent = ( on && ctx ) ? ( base + delim + ctx ) : base;
+			}
+		}
+
+		ta.addEventListener( 'input', refresh );
+		if ( toggle ) { toggle.addEventListener( 'change', refresh ); }
+		if ( tplBtn ) {
+			tplBtn.addEventListener( 'click', function () {
+				if ( ta.value.trim() && ! window.confirm( 'Replace the current context with the starter template?' ) ) { return; }
+				ta.value = emcpContextTemplate();
+				refresh();
+				ta.focus();
+			} );
+		}
+		refresh();
+	}
+
+	function emcpContextTemplate() {
+		return [
+			'# About this site',
+			'',
+			'## Business identity',
+			'- Name:',
+			'- What we do:',
+			'- Primary audience:',
+			'',
+			'## Brand voice & tone',
+			'- ',
+			'',
+			'## Content & SEO rules',
+			'- ',
+			'',
+			'## Technical / Elementor constraints',
+			'- ',
+			'',
+			'## Guardrails (what NOT to do)',
+			'- '
+		].join( '\n' );
+	}
+
 	// Initialize on DOM ready.
 	function initAll() {
 		initToolsForm();
@@ -1313,6 +1375,7 @@
 		initBrandKits();
 		initCodeOverlay();
 		initClickToCopy();
+		initContextPage();
 	}
 
 	if ( document.readyState === 'loading' ) {

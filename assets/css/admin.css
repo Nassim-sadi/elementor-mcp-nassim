@@ -2745,4 +2745,33 @@
 }
 .elementor-mcp-client-card .dashicons { font-size: 28px; width: 28px; height: 28px; color: var( --mcp-gray-600, #4b5563 ); }
 .elementor-mcp-client-card.is-selected .dashicons { color: var( --mcp-primary, #6366f1 ); }
+
+/* Context page */
+.elementor-mcp-context-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 8px 0;
+}
+.elementor-mcp-context-counter {
+	font-size: 12px;
+	color: var( --mcp-gray-600, #4b5563 );
+}
+.elementor-mcp-context-counter.is-warn {
+	color: #b45309;
+	font-weight: 600;
+}
+.elementor-mcp-context-preview {
+	margin: 0;
+	padding: 14px 16px;
+	background: var( --mcp-gray-900, #0f172a );
+	color: #e2e8f0;
+	font-size: 12px;
+	line-height: 1.6;
+	border-radius: var( --mcp-radius, 8px );
+	white-space: pre-wrap;
+	max-height: 360px;
+	overflow: auto;
+}
 .elementor-mcp-client-card-label { font-weight: 600; font-size: 13px; text-align: center; }
