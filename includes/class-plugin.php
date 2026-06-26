@@ -346,7 +346,7 @@ class EMCP_Tools_Plugin {
 			'mcp',                                                    // route_namespace
 			'emcp-tools-server',                                   // route
 			__( 'MCP Tools for Elementor Server', 'emcp-tools' ),            // server_name
-			__( 'Exposes Elementor data and design tools as MCP tools for AI agents.', 'emcp-tools' ), // description
+			EMCP_Tools_Site_Context::compose_instructions( EMCP_Tools_Site_Context::default_base() ), // description (base + site context)
 			'v' . EMCP_TOOLS_VERSION,                              // version
 			array( \WP\MCP\Transport\HttpTransport::class ),          // transports
 			null,                                                     // error_handler (use default)
