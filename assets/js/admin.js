@@ -1219,7 +1219,8 @@
 	// Render one copy/download block.
 	function emcpBlock( title, bodyHtml ) {
 		return '<div class="elementor-mcp-config-card"><div class="elementor-mcp-config-card-header">' +
-			'<span class="elementor-mcp-config-card-title">' + emcpEscapeHtml( title ) + '</span></div>' + bodyHtml + '</div>';
+			'<span class="elementor-mcp-config-card-title">' + emcpEscapeHtml( title ) + '</span></div>' +
+			'<div class="elementor-mcp-config-card-body">' + bodyHtml + '</div></div>';
 	}
 
 	function emcpCopyBlock( title, text ) {

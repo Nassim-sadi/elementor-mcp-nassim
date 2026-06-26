@@ -1008,6 +1008,16 @@
 	border-color: var(--mcp-gray-400) !important;
 }
 
+.elementor-mcp-config-card-body {
+	padding: 14px 16px;
+}
+.elementor-mcp-config-card-body > :first-child {
+	margin-top: 0;
+}
+.elementor-mcp-config-card-body > :last-child {
+	margin-bottom: 0;
+}
+
 .elementor-mcp-config-card pre {
 	margin: 0;
 	padding: 14px 16px;
