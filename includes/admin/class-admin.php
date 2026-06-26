@@ -639,8 +639,12 @@ class EMCP_Tools_Admin {
 				'applyKitTitle' => __( 'Apply "%s" brand kit?', 'emcp-tools' ),
 				/* translators: %s: brand kit title */
 				'kitApplied'    => __( '%s applied.', 'emcp-tools' ),
-				'restoreConfirm' => __( 'Restore global colors and typography from this backup?', 'emcp-tools' ),
-				'viewSite'      => __( 'View site →', 'emcp-tools' ),
+				'restoreConfirm'     => __( 'Restore global colors and typography from this backup?', 'emcp-tools' ),
+				'viewSite'           => __( 'View site →', 'emcp-tools' ),
+				// Connection-tab client picker + .mcpb bundle.
+				'connectionClients'  => self::connection_clients(),
+				'mcpbNonce'          => wp_create_nonce( self::NONCE_DOWNLOAD_MCPB ),
+				'adminPostUrl'       => admin_url( 'admin-post.php' ),
 			)
 		);
 	}
