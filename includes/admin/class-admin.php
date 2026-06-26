@@ -928,6 +928,17 @@ class EMCP_Tools_Admin {
 			wp_die( esc_html( $tmp->get_error_message() ), '', array( 'response' => 500 ) );
 		}
 
+		// Safety net: the temp file holds a live Application Password. Guarantee
+		// it is removed even if streaming aborts (fatal, memory limit, etc.) —
+		// the explicit unlink after readfile() handles the normal fast path.
+		register_shutdown_function(
+			static function () use ( $tmp ) {
+				if ( file_exists( $tmp ) ) {
+					@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+				}
+			}
+		);
+
 		$host     = (string) wp_parse_url( home_url(), PHP_URL_HOST );
 		$filename = 'emcp-tools-' . sanitize_file_name( $host ?: 'site' ) . '.mcpb';
 
