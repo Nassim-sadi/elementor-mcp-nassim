@@ -27,6 +27,15 @@ class McpbBuilderTest extends TestCase {
 	}
 
 	/** @test */
+	public function manifest_uses_current_schema_with_entry_point(): void {
+		$m = $this->manifest();
+		$this->assertSame( '0.3', $m['manifest_version'] );
+		$this->assertSame( 'node', $m['server']['type'] );
+		$this->assertSame( 'server/index.js', $m['server']['entry_point'] );
+		$this->assertArrayHasKey( 'name', $m['author'] );
+	}
+
+	/** @test */
 	public function manifest_runs_the_npx_proxy(): void {
 		$cfg = $this->manifest()['server']['mcp_config'];
 		$this->assertSame( 'npx', $cfg['command'] );
