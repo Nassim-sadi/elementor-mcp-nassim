@@ -576,6 +576,29 @@
 	box-shadow: 0 0 0 2px var(--mcp-white), 0 0 0 4px var(--mcp-primary);
 }
 
+/* Danger sections (Filesystem / Database) — powerful, sensitive capabilities.
+   A flat light-red zone with red toggles signals the elevated risk. */
+.elementor-mcp-category.is-danger {
+	background: var(--mcp-danger-light);
+	border: 1px solid #fecaca;
+	border-left: 3px solid var(--mcp-danger);
+	border-radius: var(--mcp-radius, 8px);
+	padding: 16px 18px;
+}
+.elementor-mcp-category.is-danger .elementor-mcp-category-title,
+.elementor-mcp-category.is-danger .elementor-mcp-category-chevron {
+	color: var(--mcp-danger);
+}
+.elementor-mcp-category.is-danger .elementor-mcp-tool-card {
+	background: var(--mcp-white);
+}
+.elementor-mcp-category.is-danger .elementor-mcp-tool-card.is-enabled .elementor-mcp-toggle-track {
+	background: var(--mcp-danger);
+}
+.elementor-mcp-category.is-danger .elementor-mcp-tool-card input[type="checkbox"]:focus-visible ~ .elementor-mcp-toggle .elementor-mcp-toggle-track {
+	box-shadow: 0 0 0 2px var(--mcp-white), 0 0 0 4px var(--mcp-danger);
+}
+
 /* =========================================================================
  * Tool Info
  * ========================================================================= */

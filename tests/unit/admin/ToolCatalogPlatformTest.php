@@ -56,6 +56,18 @@ class ToolCatalogPlatformTest extends TestCase {
 	}
 
 	/** @test */
+	public function test_danger_categories_sort_to_the_end_of_their_tab(): void {
+		$cats    = array(
+			'a'        => array( 'platform' => 'wordpress', 'tools' => array() ),
+			'danger_1' => array( 'platform' => 'wordpress', 'danger' => true, 'tools' => array() ),
+			'b'        => array( 'platform' => 'wordpress', 'tools' => array() ),
+			'danger_2' => array( 'platform' => 'wordpress', 'danger' => true, 'tools' => array() ),
+		);
+		$buckets = \EMCP_Tools_Admin::partition_by_platform( $cats );
+		$this->assertSame( array( 'a', 'b', 'danger_1', 'danger_2' ), array_keys( $buckets['wordpress'] ) );
+	}
+
+	/** @test */
 	public function test_partition_preserves_category_order_within_bucket(): void {
 		$cats = array(
 			'a' => array( 'platform' => 'wordpress', 'tools' => array() ),

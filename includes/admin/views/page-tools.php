@@ -152,7 +152,7 @@ $emcp_tools_badge_labels = array(
 			data-tab="<?php echo esc_attr( $emcp_tools_tab_id ); ?>"
 		>
 			<?php foreach ( $emcp_tools_tab_cats as $emcp_tools_category_id => $emcp_tools_category ) : ?>
-				<div class="elementor-mcp-category" data-category="<?php echo esc_attr( $emcp_tools_category_id ); ?>">
+				<div class="elementor-mcp-category <?php echo esc_attr( ! empty( $emcp_tools_category['danger'] ) ? 'is-danger' : '' ); ?>" data-category="<?php echo esc_attr( $emcp_tools_category_id ); ?>">
 					<?php
 					$emcp_tools_cat_total   = count( $emcp_tools_category['tools'] );
 					$emcp_tools_cat_enabled = 0;

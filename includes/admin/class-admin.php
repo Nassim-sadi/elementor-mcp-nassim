@@ -1310,6 +1310,21 @@ class EMCP_Tools_Admin {
 			$platform = ( isset( $cat['platform'] ) && isset( $buckets[ $cat['platform'] ] ) ) ? $cat['platform'] : 'elementor';
 			$buckets[ $platform ][ $id ] = $cat;
 		}
+		// Sort danger categories (filesystem/database) to the end of their tab —
+		// the most powerful/destructive groups live at the bottom. Relative order
+		// is otherwise preserved.
+		foreach ( $buckets as $tab_id => $cats ) {
+			$normal = array();
+			$danger = array();
+			foreach ( $cats as $id => $cat ) {
+				if ( ! empty( $cat['danger'] ) ) {
+					$danger[ $id ] = $cat;
+				} else {
+					$normal[ $id ] = $cat;
+				}
+			}
+			$buckets[ $tab_id ] = $normal + $danger;
+		}
 		return $buckets;
 	}
 
@@ -1474,6 +1489,7 @@ class EMCP_Tools_Admin {
 			),
 			'filesystem'       => array(
 				'platform' => 'wordpress',
+				'danger'   => true,
 				'label' => __( 'Filesystem', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/read-file'      => array( 'label' => __( 'Read File', 'emcp-tools' ),      'description' => __( 'Read a file in the WordPress install.', 'emcp-tools' ),          'badges' => array( 'read-only' ) ),
@@ -1486,6 +1502,7 @@ class EMCP_Tools_Admin {
 			),
 			'database'         => array(
 				'platform' => 'wordpress',
+				'danger'   => true,
 				'label' => __( 'Database', 'emcp-tools' ),
 				'tools' => array(
 					'emcp-tools/list-tables'    => array( 'label' => __( 'List Tables', 'emcp-tools' ),    'description' => __( 'List database tables with sizes.', 'emcp-tools' ),                'badges' => array( 'read-only' ) ),
