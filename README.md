@@ -10,7 +10,7 @@
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D8.1-8892BF.svg)](https://php.net)
 [![WordPress](https://img.shields.io/badge/WordPress-%3E%3D6.9-21759B.svg)](https://wordpress.org)
 [![Elementor](https://img.shields.io/badge/Elementor-%3E%3D3.20-92003B.svg)](https://elementor.com)
-[![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20118-orange.svg)](#available-tools)
+[![MCP Tools](https://img.shields.io/badge/MCP_Tools-up%20to%20124-orange.svg)](#available-tools)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![GitHub Issues](https://img.shields.io/github/issues/msrbuilds/elementor-mcp)](https://github.com/msrbuilds/elementor-mcp/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/msrbuilds/elementor-mcp?style=social)](https://github.com/msrbuilds/elementor-mcp)
@@ -30,17 +30,18 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 ## Features
 
 - **A focused MCP toolset** covering the full Elementor page-building workflow — and, as of v3.0.0, growing beyond Elementor into general WordPress management across five domains: content, settings, plugins & themes, media library, and users. As of v3.0.0 the 62 per-widget tools were folded into a catalog-backed model, so the active surface is much smaller — every widget is still reachable via discover → inspect → act. Counts scale with your environment (registered counts, live-verified on Elementor 4.1.4):
-  - **94 tools** — free Elementor only (76 active by default)
-  - **108 tools** — free Elementor + Elementor 4.0 atomic elements (90 active)
-  - **104 tools** — with Elementor Pro (71 active)
-  - **118 tools** — with Elementor Pro + Elementor 4.0 (85 active; + WooCommerce adds no new tools)
-  - **33 of these ship disabled-by-default** (SEO & Accessibility, Widget Builder, PHP Snippets, the 9 Plugins & Themes write tools, `delete-media`, and the 2 Users write tools), so the typical active surface is smaller until you opt in on the Tools tab
+  - **100 tools** — free Elementor only (79 active by default)
+  - **114 tools** — free Elementor + Elementor 4.0 atomic elements (93 active)
+  - **110 tools** — with Elementor Pro (74 active)
+  - **124 tools** — with Elementor Pro + Elementor 4.0 (88 active; + WooCommerce adds no new tools)
+  - **36 of these ship disabled-by-default** (SEO & Accessibility, Widget Builder, PHP Snippets, the 9 Plugins & Themes write tools, `delete-media`, the 2 Users write tools, and the 3 Filesystem write tools), so the typical active surface is smaller until you opt in on the Tools tab
 - **WordPress Content (beyond Elementor)** — Create and manage posts, pages, and any custom post type — content, status, taxonomy terms, custom fields, and featured images — via MCP, without touching Elementor data. Built on WP core; every post carries an `is_elementor` flag that steers agents to the Elementor tools for builder pages
 - **WordPress Settings (beyond Elementor, domain 2)** — Read and batch-update core WordPress settings (general/reading/writing/discussion/media/permalinks) over MCP. Curated allowlist only — no arbitrary option access; `admin_email` is read-only; permalink changes auto-flush rewrite rules. `manage_options`. (v3.0.0)
 - **Plugins & Themes (beyond Elementor, domain 3)** — Discover, install (wordpress.org only), update, activate/deactivate, and delete plugins and themes over MCP. Strong guardrails (EMCP Tools + Elementor protected; per-op capability gating; direct-filesystem-only); the 9 mutation tools ship disabled-by-default. `manage_options`-class capabilities. (v3.0.0)
 - **Media Library (beyond Elementor, domain 4)** — Fetch full attachment detail (`get-media`: every registered size, dimensions, metadata, alt/caption/description), edit metadata (`update-media`: alt text, title, caption, description — a one-call accessibility/SEO fix), and delete attachments (`delete-media`: destructive and effectively permanent; disabled-by-default and requires `confirm:true`). URL uploads continue via `sideload-image`. (v3.0.0)
 - **Users (beyond Elementor, domain 5)** — List and read WordPress users, and safely create/edit non-admin profiles over MCP. Hard guardrails: no delete-user and no role-change tool; `create-user` assigns only non-admin roles and auto-generates a strong password (emailed to the new user — never returned); `update-user` edits profile fields only and refuses any user with admin-level capabilities (administrators are off-limits). `list-users`/`get-user` are enabled by default; `create-user`/`update-user` are disabled-by-default. (v3.0.0)
 - **Performance Analyzer (beyond Elementor, domain 6)** — Audit server config, WordPress internals (database size, autoloaded options, post revisions, cron backlog, persistent object cache, OPcache, plugin count), and a target page (defaults to the frontpage; optional `url`/`post_id`) for performance bottlenecks. Returns a scored report (0-100 + A–F grade) with severity-tagged findings (`server`/`database`/`config`/`page`/`assets`) and ranked recommendations. Read-only, self-contained (no external API), same-host-enforced loopback fetch, enabled by default. (v3.0.0)
+- **Filesystem (beyond Elementor)** — Read and scan any file inside the WordPress install (`read-file`, `list-directory`, `search-files` — enabled by default). Modify and delete files (`write-file`, `edit-file`, `delete-file`) are disabled-by-default: every path is confined to ABSPATH (no traversal/symlink escape), writes auto-back up the original, `wp-config.php`/`.htaccess` are refused, the `edit_files` capability is enforced (honoring `DISALLOW_FILE_EDIT`), and all writes are audit-logged. `delete-file` requires `confirm:true`. `manage_options`. (v3.0.0)
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
 - **Page Management** — Create pages, update settings, clear content, import/export templates
 - **Layout Tools** — Add flexbox containers, move/remove/duplicate elements, update containers, find elements, batch update, reorder children, get container schema
@@ -331,6 +332,19 @@ Read-only performance diagnostic over MCP, self-contained (no external API). Aud
 | Tool | Description |
 |---|---|
 | `analyze-performance` | Audit server config, WordPress internals (DB size, autoloaded options, revisions, cron backlog, object cache, OPcache, plugin count), and a target page (default frontpage; optional `url`/`post_id`) for bottlenecks. Returns a scored report (0-100 + A–F grade) grouped into `server`/`database`/`config`/`page`/`assets` with ranked `top_recommendations` (read-only, `manage_options`) |
+
+### Filesystem — beyond Elementor (6 tools, v3.0.0)
+
+Read and scan any file inside the WordPress installation — core, plugins, themes, uploads — confined to ABSPATH (no traversal or symlink escape). The 3 read tools are **enabled by default**; the **3 write/delete tools ship disabled-by-default** and require the `edit_files` capability (honoring `DISALLOW_FILE_EDIT`). Writes auto-back up the original file; `wp-config.php` and `.htaccess` are refused by all write/delete tools; every mutation is audit-logged. `manage_options`.
+
+| Tool | Description |
+|---|---|
+| `read-file` | Return the contents of any file inside ABSPATH (read-only, `manage_options`) |
+| `list-directory` | List the entries in a directory inside ABSPATH — names, types, sizes, modified times (read-only, `manage_options`) |
+| `search-files` | Search for files matching a pattern or containing a string within ABSPATH (read-only, `manage_options`) |
+| `write-file` | Write (create or overwrite) a file inside ABSPATH; auto-backs up the original; refuses `wp-config.php`/`.htaccess`; audit-logged (`edit_files` + `manage_options`; disabled-by-default) |
+| `edit-file` | Apply a targeted find-and-replace or line-range edit to a file inside ABSPATH; auto-backs up the original; refuses `wp-config.php`/`.htaccess`; audit-logged (`edit_files` + `manage_options`; disabled-by-default) |
+| `delete-file` | Delete a file inside ABSPATH; requires `confirm:true`; refuses `wp-config.php`/`.htaccess`; audit-logged (`edit_files` + `manage_options`; disabled-by-default) |
 
 ### Page Management (5 tools)
 

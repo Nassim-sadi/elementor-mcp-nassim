@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~118 MCP tools (scales with environment; see live-verified counts below). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings; (5) **domain 3 — 13 WordPress Plugins & Themes tools** (discover/install/update/activate/delete plugins and themes; wordpress.org-only; writes disabled-by-default); (6) **domain 4 — 3 WordPress Media Library tools** (`get-media`/`update-media`/`delete-media`) to fetch attachment detail, edit metadata, and delete attachments — `delete-media` ships disabled-by-default and requires `confirm:true`; and (7) **domain 5 — 4 WordPress Users tools** (`list-users`/`get-user`/`create-user`/`update-user`) for safe user management — reads enabled-by-default, writes disabled-by-default, no delete/role-change tool, administrators untouchable via MCP.
+MCP Tools for Elementor Plugin — a WordPress plugin that extends the official WordPress MCP Adapter to expose Elementor data, widgets, structures, and methods as MCP (Model Context Protocol) tools. This enables AI tools (Claude, Cursor, etc.) to create and manipulate Elementor page designs programmatically via up to ~124 MCP tools (scales with environment; see live-verified counts below). **v3.0.0 is the first major release of the rebranded EMCP Tools and bundles the whole step beyond Elementor as a single release** (previous release: 2.2.0): (1) the MCP namespace + server route renamed `elementor-mcp` → `emcp-tools`; (2) the 62 per-widget convenience tools folded into a catalog-backed model (5 widget tools), so the active surface is far smaller while every widget remains reachable; (3) **domain 1 — 8 general-WordPress Content tools** (create/read/update/list/delete posts of any type, plus taxonomy and post-type discovery) built on WP core, never touching `_elementor_data`; (4) **domain 2 — 2 WordPress Settings tools** (`get-settings`/`update-settings`) over a curated, typed allowlist of core WordPress settings; (5) **domain 3 — 13 WordPress Plugins & Themes tools** (discover/install/update/activate/delete plugins and themes; wordpress.org-only; writes disabled-by-default); (6) **domain 4 — 3 WordPress Media Library tools** (`get-media`/`update-media`/`delete-media`) to fetch attachment detail, edit metadata, and delete attachments — `delete-media` ships disabled-by-default and requires `confirm:true`; (7) **domain 5 — 4 WordPress Users tools** (`list-users`/`get-user`/`create-user`/`update-user`) for safe user management — reads enabled-by-default, writes disabled-by-default, no delete/role-change tool, administrators untouchable via MCP; and (8) **domain 7 — 6 Filesystem tools** (`read-file`/`list-directory`/`search-files` enabled-by-default; `write-file`/`edit-file`/`delete-file` disabled-by-default) confined to ABSPATH, writes auto-backed-up and audit-logged, `wp-config.php`/`.htaccess` refused, `edit_files` capability enforced.
 
 ## Companion projects (sibling folders, edit from here)
 
@@ -15,19 +15,19 @@ MCP Tools for Elementor Plugin — a WordPress plugin that extends the official 
 
 When editing premium-prompts behavior, the plugin code (`includes/admin/class-pro-prompts.php`) and the website's API endpoint (`website/src/pages/api/emcp/prompts.json.ts` per the PLAN) must stay in sync via the contract in `docs/PREMIUM_PROMPTS_API.md`.
 
-**Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, the catalog-backed widget consolidation, the namespace rename, and the five beyond-Elementor domains (8 WordPress Content tools + 2 WordPress Settings tools + 13 WordPress Plugins & Themes tools + 3 WordPress Media Library tools + 4 WordPress Users tools), all shipping together as the single 3.0.0 release.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, 8 general-WordPress content tools, 2 WordPress settings tools, 13 plugins & themes tools, 3 media library tools, 4 WordPress users tools, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
+**Current status: v3.0.0 — All phases implemented (P0/P1/P2) plus Elementor 4.0 atomic elements, top-level admin menu, the catalog-backed widget consolidation, the namespace rename, and the six beyond-Elementor domains (8 WordPress Content tools + 2 WordPress Settings tools + 13 WordPress Plugins & Themes tools + 3 WordPress Media Library tools + 4 WordPress Users tools + 6 Filesystem tools), all shipping together as the single 3.0.0 release.** Foundation layer, query tools, page CRUD, layout, the 5 catalog-backed widget tools, template, global, composite tools, stock images, SVG icons, custom code tools, 13 atomic element tools for Elementor 4.0+, 8 general-WordPress content tools, 2 WordPress settings tools, 13 plugins & themes tools, 3 media library tools, 4 WordPress users tools, 6 filesystem tools, and a curated essentials filter (Low-tools mode, now largely obsolete after the consolidation).
 
 **Tool counts by configuration (v3.0.0 — REGISTERED counts, live-verified via `WP_Abilities_Registry` on Elementor 4.1.4 + Pro, 2026-06-26; each total = `emcp-tools/*` + the 3 surfaced `core/*` abilities):**
-- Free Elementor only: **94** (91 emcp + 3 core) — **76** active by default
-- Free Elementor + Elementor 4.0+ atomic: **108** (105 + 3) — **90** active by default
-- With Elementor Pro: **104** (101 + 3) — **71** active by default
-- With Elementor Pro + Elementor 4.0+: **118** (115 + 3) — **85** active by default
-- With Pro + WooCommerce + Elementor 4.0+: **118** — WooCommerce widgets are reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
+- Free Elementor only: **100** (97 emcp + 3 core) — **79** active by default
+- Free Elementor + Elementor 4.0+ atomic: **114** (111 + 3) — **93** active by default
+- With Elementor Pro: **110** (107 + 3) — **74** active by default
+- With Elementor Pro + Elementor 4.0+: **124** (121 + 3) — **88** active by default
+- With Pro + WooCommerce + Elementor 4.0+: **124** — WooCommerce widgets are reached through `add-pro-widget` (catalog tier `woo`), so they add **no** new tools.
 - Low-tools mode (any config): still available but largely obsolete — the consolidation already keeps the surface well under common client caps.
 
-> The beyond-Elementor surface in v3.0.0 adds: 8 Content + 3 `core/*` + 2 Settings + 13 Plugins & Themes + 3 Media Library + 4 Users = 33 tools. Of those 33, the 9 Plugins & Themes mutation tools, 1 Media Library delete tool, and 2 Users write tools ship disabled-by-default (admin opts in on the Tools tab), so the net enabled-by-default addition is +21.
+> The beyond-Elementor surface in v3.0.0 adds: 8 Content + 3 `core/*` + 2 Settings + 13 Plugins & Themes + 3 Media Library + 4 Users + 6 Filesystem = 39 tools. Of those 39, the 9 Plugins & Themes mutation tools, 1 Media Library delete tool, 2 Users write tools, and 3 Filesystem write tools ship disabled-by-default (admin opts in on the Tools tab), so the net enabled-by-default addition is +24.
 
-> **These are REGISTERED counts.** **33 tools ship disabled-by-default** — SEO & Accessibility (**7**, Pro), Widget Builder (**8**, Pro), PHP Snippets / Sandbox (**6**, free), the **9** Plugins & Themes write tools, **1** `delete-media`, and the **2** Users write tools. So the typical **active** surface is up to 33 smaller until a user enables them on the Tools tab (e.g. Pro + Elementor 4.0+ = **118** registered, **85** active by default). Verified reconciliation: 118 registered − 12 currently-off writes = 106 in the live `tools/list` when SEO/Widget-Builder/PHP-Snippets are manually enabled.
+> **These are REGISTERED counts.** **36 tools ship disabled-by-default** — SEO & Accessibility (**7**, Pro), Widget Builder (**8**, Pro), PHP Snippets / Sandbox (**6**, free), the **9** Plugins & Themes write tools, **1** `delete-media`, the **2** Users write tools, and the **3** Filesystem write tools. So the typical **active** surface is up to 36 smaller until a user enables them on the Tools tab (e.g. Pro + Elementor 4.0+ = **124** registered, **88** active by default). Verified reconciliation: 124 registered − 12 currently-off writes (SEO/WB/PHP-Snippets) − 3 filesystem writes = 109 in the live `tools/list` when SEO/Widget-Builder/PHP-Snippets are manually enabled.
 >
 > **What the v3.0.0 consolidation changed.** Every per-widget convenience tool (62) plus the old universal `add-widget` were removed; `add-free-widget` (always) and `add-pro-widget` (Pro only) were added. The 62 curated widgets are now catalog DATA (27 free / 30 pro / 5 woo) served by `EMCP_Tools_Widget_Catalog`, not individual tools. The widget portion of the per-turn `tools/list` dropped from ~18–20k tokens to ~1.2k (the five widget tool schemas total ~5 KB). Verified end-to-end via the WP-CLI MCP stdio server: `tools/list` shows exactly the 5 widget tools and none of the 62 old names, and a real `add-container` → `add-free-widget` round-trip persists to `_elementor_data`.
 
@@ -152,7 +152,7 @@ The MCP Adapter converts ability names like `emcp-tools/list-widgets` to tool na
 | Code snippets (create) | `manage_options` + `unfiltered_html` |
 | Code snippets (list) | `manage_options` |
 
-## All Implemented Tools (118 registered with Pro + Elementor 4.0+; 115 `emcp-tools/*` + 3 `core/*` — see counts above)
+## All Implemented Tools (124 registered with Pro + Elementor 4.0+; 121 `emcp-tools/*` + 3 `core/*` — see counts above)
 
 ### P0 — Query/Discovery (7 read-only)
 
@@ -310,6 +310,21 @@ Read-only performance diagnostic over MCP, self-contained (no external API). Bui
 | Ability Name | Purpose |
 |---|---|
 | `emcp-tools/analyze-performance` | Audit server config, WordPress internals (DB size, autoloaded options, revisions, cron backlog, object cache, OPcache, plugin count), and a target page (default frontpage; optional `url`/`post_id`) for bottlenecks; returns a scored, severity-tagged report with recommendations. Read-only. |
+
+### Filesystem — domain 7 (6 tools, v3.0.0)
+
+Read and scan any file inside the WordPress install; write/delete are disabled-by-default. All paths are confined to ABSPATH — no directory traversal and no symlink escape outside the root. Writes auto-back up the original file before mutating, refuse `wp-config.php` and `.htaccess`, require the `edit_files` capability (honoring `DISALLOW_FILE_EDIT`), and record every mutation to an audit log. `delete-file` requires an explicit `confirm:true`. All tools require `manage_options`. Implemented in `includes/abilities/class-filesystem-abilities.php`.
+
+> **Risk notice (per explicit project decision).** File read can expose `wp-config.php` and any secret stored as a plain file in the WordPress tree. Enabling the write tools is effectively remote code execution — an agent can edit any PHP file that WordPress then loads and executes. These tools are confined to ABSPATH, ship disabled-by-default, are admin-gated, auto-back up files, and audit-log every write. Arbitrary filesystem access is contrary to WordPress.org plugin guidelines — this feature is included per an explicit project decision and is disabled unless the admin opts in on the Tools tab.
+
+| Ability Name | Purpose |
+|---|---|
+| `emcp-tools/read-file` | Return the contents of any file inside ABSPATH. Read-only. (`manage_options`) |
+| `emcp-tools/list-directory` | List entries in a directory inside ABSPATH — names, types, sizes, modified times. Read-only. (`manage_options`) |
+| `emcp-tools/search-files` | Search for files matching a name pattern or containing a string within ABSPATH. Read-only. (`manage_options`) |
+| `emcp-tools/write-file` | Write (create or overwrite) a file inside ABSPATH; auto-backs up original; refuses `wp-config.php`/`.htaccess`; audit-logged. Disabled-by-default. (`edit_files` + `manage_options`) |
+| `emcp-tools/edit-file` | Apply a targeted find-and-replace or line-range edit to a file inside ABSPATH; auto-backs up original; refuses `wp-config.php`/`.htaccess`; audit-logged. Disabled-by-default. (`edit_files` + `manage_options`) |
+| `emcp-tools/delete-file` | Delete a file inside ABSPATH; requires `confirm:true`; refuses `wp-config.php`/`.htaccess`; audit-logged. Disabled-by-default. (`edit_files` + `manage_options`) |
 
 ### Stock Images (3 tools)
 
