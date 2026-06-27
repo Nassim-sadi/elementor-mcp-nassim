@@ -107,6 +107,14 @@ class EMCP_Tools_Bootstrap {
 		// Database tools (read-only query + structured writes; writes off by default).
 		require_once EMCP_TOOLS_DIR . 'includes/class-database-guard.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-database-abilities.php';
+		// Security & Malware Scanner (v3.0.0) — read-only multi-audit scan.
+		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-finding.php';
+		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-malware-audit.php';
+		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-integrity-audit.php';
+		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-hardening-audit.php';
+		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-software-audit.php';
+		require_once EMCP_TOOLS_DIR . 'includes/security/class-security-scanner.php';
+		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-security-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-svg-icon-abilities.php';
 		require_once EMCP_TOOLS_DIR . 'includes/abilities/class-custom-code-abilities.php';
 		// Brand Kits (Pro). The writer + backup store + fetcher + abilities load

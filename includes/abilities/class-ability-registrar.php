@@ -173,6 +173,12 @@ class EMCP_Tools_Ability_Registrar {
 		$database->register();
 		$this->ability_names = array_merge( $this->ability_names, $database->get_ability_names() );
 
+		// Security & Malware Scanner (read-only server/file/config scan).
+		// Unconditional — pure WordPress, always available.
+		$security = new EMCP_Tools_Security_Abilities();
+		$security->register();
+		$this->ability_names = array_merge( $this->ability_names, $security->get_ability_names() );
+
 		// SVG icon abilities (upload SVG for use as Elementor icons).
 		$svg_icons = new EMCP_Tools_Svg_Icon_Abilities( $this->data, $this->factory );
 		$svg_icons->register();
