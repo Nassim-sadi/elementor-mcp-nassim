@@ -1129,6 +1129,8 @@ namespace {
 		'EMCP_Tools_Site_Context'           => 'includes/class-site-context.php',
 		'EMCP_Tools_Admin'                  => 'includes/admin/class-admin.php',
 			'EMCP_Tools_Mcpb_Builder'           => 'includes/admin/class-mcpb-builder.php',
+			'EMCP_Tools_Database_Guard'          => 'includes/class-database-guard.php',
+			'EMCP_Tools_Database_Abilities'      => 'includes/abilities/class-database-abilities.php',
 		];
 
 		if ( isset( $map[ $class ] ) ) {
