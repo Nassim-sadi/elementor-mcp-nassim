@@ -618,11 +618,18 @@
 .elementor-mcp-category.is-danger .elementor-mcp-tool-card.is-enabled {
 	border-color: #fecaca;
 }
+/* Disabled cards in danger sections: keep them on white so they read as cards
+   against the pink zone, and dim only gently (the global 0.6 opacity washes the
+   text out on the tint). The gray toggle still signals the off state. */
 .elementor-mcp-category.is-danger .elementor-mcp-tool-card.is-disabled {
-	background: #fdeaea;
+	background: var(--mcp-white);
+	opacity: 0.85;
 }
-.elementor-mcp-category.is-danger .elementor-mcp-tool-slug {
-	background: #fdeaea;
+.elementor-mcp-category.is-danger .elementor-mcp-tool-card.is-disabled .elementor-mcp-tool-name {
+	color: var(--mcp-gray-900);
+}
+.elementor-mcp-category.is-danger .elementor-mcp-tool-card.is-disabled .elementor-mcp-tool-desc {
+	color: var(--mcp-gray-600);
 }
 
 /* =========================================================================
