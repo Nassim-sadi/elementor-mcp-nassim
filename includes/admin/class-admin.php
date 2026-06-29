@@ -2187,21 +2187,38 @@ class EMCP_Tools_Admin {
 	 * @return string[] All tool slugs.
 	 */
 	public function get_all_tool_slugs(): array {
-		$slugs      = array();
-		$categories = $this->get_all_tools();
+		$slugs = array();
+		foreach ( $this->get_all_tools() as $category ) {
+			foreach ( $category['tools'] as $slug => $tool ) {
+				$slugs[] = $slug;
+			}
+		}
+		return $slugs;
+	}
 
-		// When Elementor is inactive its tool groups never register, so they must
-		// not inflate the "X of Y enabled" stats. Drop Elementor-platform categories.
+	/**
+	 * Returns only the slugs of tools whose platform group is currently active.
+	 *
+	 * When Elementor is inactive, Elementor-platform tools are excluded because
+	 * they are never registered and must not inflate "X of Y enabled" stats.
+	 * Use get_all_tool_slugs() (unfiltered) anywhere the full canonical list is
+	 * needed for data-management purposes (e.g. sanitize_disabled_tools).
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return string[]
+	 */
+	public function get_available_tool_slugs(): array {
+		$categories = $this->get_all_tools();
 		if ( ! EMCP_Tools_Bootstrap::elementor_active() ) {
 			$categories = self::filter_out_elementor( $categories );
 		}
-
+		$slugs = array();
 		foreach ( $categories as $category ) {
 			foreach ( $category['tools'] as $slug => $tool ) {
 				$slugs[] = $slug;
 			}
 		}
-
 		return $slugs;
 	}
 
@@ -2213,7 +2230,7 @@ class EMCP_Tools_Admin {
 	 * @return int Number of enabled tools.
 	 */
 	public function get_enabled_tool_count(): int {
-		$all = $this->get_all_tool_slugs();
+		$all = $this->get_available_tool_slugs();
 
 		// Low-tools mode overrides the per-tool toggles (see filter_disabled_tools):
 		// exactly the essentials are active.
@@ -2237,6 +2254,6 @@ class EMCP_Tools_Admin {
 	 * @return int Total number of tools.
 	 */
 	public function get_total_tool_count(): int {
-		return count( $this->get_all_tool_slugs() );
+		return count( $this->get_available_tool_slugs() );
 	}
 }
