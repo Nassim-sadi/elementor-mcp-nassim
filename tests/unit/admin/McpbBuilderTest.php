@@ -36,10 +36,11 @@ class McpbBuilderTest extends TestCase {
 	}
 
 	/** @test */
-	public function manifest_runs_the_npx_proxy(): void {
+	public function manifest_runs_the_bundled_proxy_via_node(): void {
 		$cfg = $this->manifest()['server']['mcp_config'];
-		$this->assertSame( 'npx', $cfg['command'] );
-		$this->assertSame( array( '-y', '@msrbuilds/emcp-proxy@latest' ), $cfg['args'] );
+		// mcp_config now runs the bundled entry-point via node (no npx needed).
+		$this->assertSame( 'node', $cfg['command'] );
+		$this->assertContains( 'server/index.js', $cfg['args'] );
 	}
 
 	/** @test */

@@ -1,7 +1,12 @@
 <?php
 /**
- * Builds a Claude Desktop .mcpb bundle (a zip containing manifest.json) that
- * installs the EMCP MCP server via the npx proxy, with credentials baked in.
+ * Builds a Claude Desktop .mcpb bundle that installs the EMCP MCP server
+ * using the bundled proxy — no npx, no internet, no PATH issues.
+ *
+ * The bundle contains:
+ *   manifest.json      — MCPB 0.3 manifest
+ *   server/index.js    — entry-point: runs the bundled proxy via process.execPath
+ *   server/proxy.mjs   — the self-contained stdio↔HTTP proxy (copied from bin/)
  *
  * @package EMCP_Tools
  * @since   3.0.0
@@ -18,12 +23,11 @@ class EMCP_Tools_Mcpb_Builder {
 
 	const MANIFEST_VERSION = '0.3';
 
-	/**
-	 * Relative path (inside the bundle) of the entry-point launcher. MCPB
-	 * requires server.entry_point even when execution is driven by mcp_config;
-	 * we ship a tiny launcher at this path so the manifest validates.
-	 */
+	/** Relative path of the entry-point inside the bundle. */
 	const ENTRY_POINT = 'server/index.js';
+
+	/** Relative path of the bundled proxy inside the bundle. */
+	const PROXY_PATH = 'server/proxy.mjs';
 
 	/**
 	 * Build the MCPB manifest array. Pure — no I/O.
@@ -47,9 +51,12 @@ class EMCP_Tools_Mcpb_Builder {
 			'server'           => array(
 				'type'        => 'node',
 				'entry_point' => self::ENTRY_POINT,
+				// mcp_config is included as a hint for hosts that support it;
+				// server/index.js is the authoritative execution path and does
+				// not rely on mcp_config being injected.
 				'mcp_config'  => array(
-					'command' => 'npx',
-					'args'    => array( '-y', '@msrbuilds/emcp-proxy@latest' ),
+					'command' => 'node',
+					'args'    => array( self::ENTRY_POINT ),
 					'env'     => array(
 						'WP_URL'               => $site_url,
 						'WP_USERNAME'          => $username,
@@ -62,8 +69,8 @@ class EMCP_Tools_Mcpb_Builder {
 	}
 
 	/**
-	 * Write the manifest into a temp .mcpb (zip) file and return its path, or
-	 * WP_Error on failure.
+	 * Write the manifest + entry-point + bundled proxy into a temp .mcpb (zip)
+	 * file and return its path, or WP_Error on failure.
 	 *
 	 * @param array $manifest
 	 * @return string|\WP_Error Temp file path.
@@ -72,35 +79,53 @@ class EMCP_Tools_Mcpb_Builder {
 		if ( ! class_exists( 'ZipArchive' ) ) {
 			return new \WP_Error( 'no_zip', __( 'The ZipArchive PHP extension is required to build the bundle.', 'emcp-tools' ) );
 		}
+
+		// Read the bundled proxy source that ships with the plugin.
+		$proxy_source_path = EMCP_TOOLS_DIR . 'bin/mcp-proxy.mjs';
+		$proxy_source      = @file_get_contents( $proxy_source_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+		if ( false === $proxy_source ) {
+			return new \WP_Error( 'no_proxy', __( 'Could not read the bundled proxy file (bin/mcp-proxy.mjs). Please reinstall the plugin.', 'emcp-tools' ) );
+		}
+
 		$tmp = wp_tempnam( 'emcp-tools.mcpb' );
 		if ( ! $tmp ) {
 			return new \WP_Error( 'no_tmp', __( 'Could not create a temporary file for the bundle.', 'emcp-tools' ) );
 		}
+
 		$zip = new \ZipArchive();
 		if ( true !== $zip->open( $tmp, \ZipArchive::OVERWRITE | \ZipArchive::CREATE ) ) {
 			@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
 			return new \WP_Error( 'no_open', __( 'Could not open the bundle archive for writing.', 'emcp-tools' ) );
 		}
-		$zip->addFromString( 'manifest.json', (string) wp_json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
-		// Launcher that also works when Claude Desktop runs entry_point directly
-		// without injecting mcp_config.env — credentials are embedded so the proxy
-		// always gets them regardless of which path the host takes.
+
 		$env = $manifest['server']['mcp_config']['env'] ?? array();
+
+		$zip->addFromString( 'manifest.json', (string) wp_json_encode( $manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+		// Entry-point: runs the bundled proxy.mjs via the same Node binary.
+		// Credentials are embedded so this works whether the host runs it via
+		// entry_point or mcp_config — no npx, no network, no PATH dependency.
 		$zip->addFromString( self::ENTRY_POINT, self::launcher_js( $env ) );
+		// The self-contained stdio↔HTTP proxy (pure Node.js built-ins only).
+		$zip->addFromString( self::PROXY_PATH, $proxy_source );
+
 		$zip->close();
 		return $tmp;
 	}
 
 	/**
-	 * The bundled entry-point launcher (Node). Spawns the npx proxy with
-	 * credentials embedded directly so the proxy starts correctly even when
-	 * Claude Desktop runs entry_point without injecting mcp_config.env.
+	 * The entry-point launcher (CJS). Runs server/proxy.mjs via process.execPath
+	 * (the Node binary Claude Desktop already has) with credentials embedded.
 	 *
-	 * @param array $env Key→value env vars from the manifest's mcp_config.env.
+	 * Why not npx? When Claude Desktop uses its built-in Node.js to run entry_point,
+	 * the child process environment has no user PATH, so npx is unreachable.
+	 * Running the bundled proxy.mjs directly via process.execPath needs nothing
+	 * beyond the Node binary that is already executing this file.
+	 *
+	 * @param array $env Key→value credentials from mcp_config.env.
 	 * @return string
 	 */
 	private static function launcher_js( array $env = array() ): string {
-		// Build a JS object literal of the env vars to merge into process.env.
+		// Build a JS object literal of credentials to overlay on process.env.
 		$entries = array();
 		foreach ( $env as $key => $value ) {
 			$entries[] = sprintf(
@@ -111,25 +136,20 @@ class EMCP_Tools_Mcpb_Builder {
 		}
 		$env_object = "{\n" . implode( ",\n", $entries ) . "\n}";
 
-		return "#!/usr/bin/env node\n"
-			. "'use strict';\n"
-			. "// EMCP Tools MCPB launcher — credentials embedded so the proxy\n"
-			. "// starts correctly even when mcp_config.env is not injected by the host.\n"
-			. "// shell:true lets the OS shell resolve 'npx' from PATH, which is required\n"
-			. "// when Claude Desktop's built-in Node.js runs this file directly (its child\n"
-			. "// processes don't inherit the user's shell PATH without shell:true).\n"
+		// CJS wrapper (require/module.exports available in any Node.js version).
+		// Uses --input-type=module via execFileSync to run the ESM proxy.mjs.
+		return "'use strict';\n"
+			. "// EMCP Tools MCPB entry-point — runs the bundled proxy via Node.\n"
+			. "// No npx, no npm, no internet connection needed.\n"
 			. "const path = require('path');\n"
-			. "const { spawn } = require('child_process');\n"
+			. "const { spawnSync } = require('child_process');\n"
+			. "const proxyPath = path.join(__dirname, 'proxy.mjs');\n"
 			. "const injected = " . $env_object . ";\n"
-			. "// Prepend the directory containing this Node binary to PATH so npx is\n"
-			. "// reachable when using Claude Desktop's built-in Node.js.\n"
-			. "const nodeBinDir = path.dirname(process.execPath);\n"
-			. "const sep = process.platform === 'win32' ? ';' : ':';\n"
-			. "const env = Object.assign({}, process.env, injected,\n"
-			. "  { PATH: nodeBinDir + sep + (process.env.PATH || '') });\n"
-			. "const child = spawn('npx', ['-y', '@msrbuilds/emcp-proxy@latest'], {\n"
-			. "  stdio: 'inherit', env: env, shell: true,\n"
+			. "const env = Object.assign({}, process.env, injected);\n"
+			. "const result = spawnSync(process.execPath, [proxyPath], {\n"
+			. "  stdio: 'inherit',\n"
+			. "  env: env,\n"
 			. "});\n"
-			. "child.on('exit', (code) => process.exit(code == null ? 0 : code));\n";
+			. "process.exit(result.status == null ? 0 : result.status);\n";
 	}
 }
