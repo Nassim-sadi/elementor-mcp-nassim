@@ -40,7 +40,7 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 - **Plugins & Themes (beyond Elementor, domain 3)** — Discover, install (wordpress.org only), update, activate/deactivate, and delete plugins and themes over MCP. Strong guardrails (EMCP Tools + Elementor protected; per-op capability gating; direct-filesystem-only); the 9 mutation tools ship disabled-by-default. `manage_options`-class capabilities. (v3.0.0)
 - **Media Library (beyond Elementor, domain 4)** — Fetch full attachment detail (`get-media`: every registered size, dimensions, metadata, alt/caption/description), edit metadata (`update-media`: alt text, title, caption, description — a one-call accessibility/SEO fix), and delete attachments (`delete-media`: destructive and effectively permanent; disabled-by-default and requires `confirm:true`). URL uploads continue via `sideload-image`. (v3.0.0)
 - **Users (beyond Elementor, domain 5)** — List and read WordPress users, and safely create/edit non-admin profiles over MCP. Hard guardrails: no delete-user and no role-change tool; `create-user` assigns only non-admin roles and auto-generates a strong password (emailed to the new user — never returned); `update-user` edits profile fields only and refuses any user with admin-level capabilities (administrators are off-limits). `list-users`/`get-user` are enabled by default; `create-user`/`update-user` are disabled-by-default. (v3.0.0)
-- **Performance Analyzer (beyond Elementor, domain 6)** — Audit server config, WordPress internals (database size, autoloaded options, post revisions, cron backlog, persistent object cache, OPcache, plugin count), and a target page (defaults to the frontpage; optional `url`/`post_id`) for performance bottlenecks. Returns a scored report (0-100 + A–F grade) with severity-tagged findings (`server`/`database`/`config`/`page`/`assets`) and ranked recommendations. Read-only, self-contained (no external API), same-host-enforced loopback fetch, enabled by default. (v3.0.0)
+- **Performance & Security (beyond Elementor, domain 6)** — Two read-only diagnostics. **`analyze-performance`** audits server config, WordPress internals (database size, autoloaded options, post revisions, cron backlog, persistent object cache, OPcache, plugin count), and a target page (defaults to the frontpage; optional `url`/`post_id`) for performance bottlenecks. **`scan-security`** — the security counterpart — scans across malware heuristics (eval/base64 obfuscation, request-driven execution, command execution, webshells, encoded blobs, executable PHP under uploads), WordPress core-file integrity (against the official wordpress.org checksums), hardening (file editing, debug output, `admin` username, XML-RPC, version disclosure, HTTPS, security headers), and outdated/abandoned software. Both return a scored report (0-100 + A–F grade) with severity-tagged findings and ranked recommendations; the malware walk is bounded and never returns full file contents (path:line + snippet only). Read-only, self-contained (no external API beyond optional, graceful wordpress.org calls), enabled by default. (v3.0.0)
 - **Filesystem (beyond Elementor)** — Read and scan any file inside the WordPress install (`read-file`, `list-directory`, `search-files` — enabled by default). Modify and delete files (`write-file`, `edit-file`, `delete-file`) are disabled-by-default: every path is confined to ABSPATH (no traversal/symlink escape), writes auto-back up the original, `wp-config.php`/`.htaccess` are refused, the `edit_files` capability is enforced (honoring `DISALLOW_FILE_EDIT`), and all writes are audit-logged. `delete-file` requires `confirm:true`. `manage_options`. (v3.0.0)
 - **Database (beyond Elementor)** — Inspect the database with flexible read-only SQL (`list-tables`, `describe-table`, `query` — SELECT/SHOW/DESCRIBE/EXPLAIN only; writes, DDL, stacked statements, MySQL `/*!` executable comments, and file-access SQL are rejected; results capped; enabled by default). Structured parameterized writes (`insert-row`, `update-rows`, `delete-rows`) are disabled-by-default: uses `$wpdb` throughout (no raw write-SQL/DDL), forces a non-empty WHERE on update/delete, refuses `wp_users`/`wp_usermeta`, captures a before-image snapshot to an audit log, and `delete-rows` requires `confirm:true`. `manage_options`. (v3.0.0)
 - **Query & Discovery** — List widgets, inspect page structures, read element settings, browse templates, view global design tokens
@@ -83,15 +83,21 @@ A WordPress plugin that extends the [WordPress MCP Adapter](https://github.com/W
 
 ## Connecting to the MCP Server
 
-Connect to your WordPress site from any AI client using HTTP. No proxy or Node.js needed — just a WordPress Application Password.
+The MCP server lives at `https://your-site.com/wp-json/mcp/emcp-tools-server` (WP-CLI: `--server=emcp-tools-server`). You can connect any MCP client to it with a WordPress Application Password.
 
-### Prerequisites
+### Recommended: the in-admin Connection manager
 
-1. Create an Application Password at **Users > Profile > Application Passwords**.
-2. Base64-encode your credentials: `echo -n "username:app-password" | base64`
-3. Your MCP endpoint is: `https://your-site.com/wp-json/mcp/emcp-tools-server`
+The fastest path is the built-in **EMCP Tools → Connection** screen. It walks you through it: toggle the server on, generate an Application Password in one click, then **pick your AI client** — and only the options that fit that client appear, tailored and ready to copy:
 
-> **Tip:** The plugin's **EMCP Tools > Connection** admin screen can generate all configs automatically — just enter your username and Application Password.
+- **Claude Desktop** — a one-click **`.mcpb` bundle**. Download it, double-click to install, done — no config files to edit. The bundle is fully self-contained: it ships a single `server/index.js` (the proxy compiled to CommonJS with your site URL + a fresh Application Password embedded) that runs on Claude Desktop's **built-in Node.js** — no `npx`, no separate Node install, no PATH setup. (The `.mcpb` contains a live credential — delete it after importing.)
+- **Claude Code / Cursor / VS Code / Antigravity** — ready-to-paste JSON (HTTP) or a terminal command, generated with your endpoint and credentials filled in.
+- **Any client** — a copy-paste **AI setup prompt** that tells the agent how to wire itself up, or the raw manual JSON.
+
+The same screen includes a one-click **authentication test** (confirms a client can actually connect and flags a host that strips the `Authorization` header) and a **Context** page where you write site-wide guidance delivered to every connecting agent as the server's MCP `instructions`.
+
+### Manual configuration
+
+Prefer to wire it up by hand? Create an Application Password at **Users → Profile → Application Passwords**, base64-encode `username:app-password` (`echo -n "username:app-password" | base64`), and point your client at `https://your-site.com/wp-json/mcp/emcp-tools-server`.
 
 ### Claude Code
 
@@ -235,7 +241,7 @@ Extract `bin/mcp-proxy.mjs` from the plugin ZIP, save it anywhere on the machine
 
 | Variable | Description |
 |---|---|
-| `MCP_LOG_FILE` | Path to a debug log file (e.g., `/tmp/elementor-mcp.log`) |
+| `MCP_LOG_FILE` | Path to a debug log file (e.g., `/tmp/emcp-tools.log`) |
 | `MCP_PROTOCOL_VERSION` | Override the protocol version in initialize responses (e.g., `2024-11-05`). Use this if your client doesn't support `2025-06-18`. |
 
 ### Testing with MCP Inspector
@@ -326,13 +332,14 @@ Safe user management over MCP — built on WP core user functions (`WP_User_Quer
 | `create-user` | Create a new non-admin WordPress user. A strong password is auto-generated and emailed; the password is never returned. Role defaults to `subscriber`; administrator and any admin-grade role are refused (`create_users`) |
 | `update-user` | Update a non-admin user's profile (email, first/last name, display name, nickname, URL, description). Cannot change roles or passwords; refuses any user with admin-level capabilities (`edit_users`) |
 
-### WordPress Performance — beyond Elementor, domain 6 (1 tool, v3.0.0)
+### WordPress Performance & Security — beyond Elementor, domain 6 (2 tools, v3.0.0)
 
-Read-only performance diagnostic over MCP, self-contained (no external API). Audits server config + WordPress internals in-process and analyzes a target page via a same-host-enforced loopback fetch (rejects off-host URLs and off-host redirects). Degrades gracefully when the page fetch is blocked. `manage_options`; enabled by default.
+Two read-only diagnostics over MCP, both self-contained (the only off-site calls are to wordpress.org — optional and graceful offline). Both return a scored report (0-100 + A–F grade) with severity-tagged findings and ranked recommendations. `manage_options`; enabled by default.
 
 | Tool | Description |
 |---|---|
-| `analyze-performance` | Audit server config, WordPress internals (DB size, autoloaded options, revisions, cron backlog, object cache, OPcache, plugin count), and a target page (default frontpage; optional `url`/`post_id`) for bottlenecks. Returns a scored report (0-100 + A–F grade) grouped into `server`/`database`/`config`/`page`/`assets` with ranked `top_recommendations` (read-only, `manage_options`) |
+| `analyze-performance` | Audit server config, WordPress internals (DB size, autoloaded options, revisions, cron backlog, object cache, OPcache, plugin count), and a target page (default frontpage; optional `url`/`post_id`) for bottlenecks. Returns a scored report grouped into `server`/`database`/`config`/`page`/`assets` with ranked `top_recommendations`. Same-host-enforced loopback fetch (rejects off-host URLs/redirects); degrades gracefully when the page fetch is blocked (read-only, `manage_options`) |
+| `scan-security` | Scan across malware heuristics (eval/base64 obfuscation, request-driven execution, command execution, webshells, encoded blobs, executable PHP under uploads), WordPress core-file integrity (against the official wordpress.org checksums), hardening (file editing, debug output, `admin` username, XML-RPC, version disclosure, HTTPS, security headers), and outdated/abandoned software. The malware walk is confined to ABSPATH and bounded by file-count + time caps (`deep`/`max_files`/`max_seconds`; partial results flagged) and never returns full file contents (path:line + snippet only); optional `checks` selects a subset. (read-only, `manage_options`) |
 
 ### Filesystem — beyond Elementor (6 tools, v3.0.0)
 
