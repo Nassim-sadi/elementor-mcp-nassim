@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,32 +20,37 @@ jobs:
         run: |
           TAG=${GITHUB_REF_NAME#v}
           ZIP_NAME="emcp-tools-$TAG.zip"
-          mkdir -p release-build
+          DIR_NAME="emcp-tools"
+          mkdir -p "release-build/$DIR_NAME"
 
           rsync -av \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='.gitignore' \
+            --exclude='.gitmodules' \
             --exclude='.claude/' \
             --exclude='.commandcode/' \
+            --exclude='.vscode/' \
             --exclude='docs/' \
             --exclude='tests/' \
             --exclude='tools/' \
             --exclude='skills/' \
             --exclude='vendor/' \
-            --exclude='composer.lock' \
-            --exclude='*.md' \
-            --exclude='CLAUDE.md' \
             --exclude='pro/' \
             --exclude='releases/' \
-            --exclude='.vscode/' \
+            --exclude='release-build/' \
+            --exclude='*.md' \
+            --exclude='CLAUDE.md' \
+            --exclude='composer.lock' \
             --exclude='.DS_Store' \
             --exclude='Thumbs.db' \
-            ./ release-build/emcp-tools/
+            ./ "release-build/$DIR_NAME/"
 
           cd release-build
-          zip -r "../$ZIP_NAME" emcp-tools/
+          zip -r "../$ZIP_NAME" "$DIR_NAME/"
           cd ..
+          rm -rf release-build
+          echo "ZIP=$ZIP_NAME" >> $GITHUB_ENV
           echo "ZIP=$ZIP_NAME" >> $GITHUB_ENV
 
       - name: Create Release
