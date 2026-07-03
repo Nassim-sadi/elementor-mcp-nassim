@@ -54,7 +54,9 @@ final class EMCP_Tools_Adapter_Bootstrap {
 	 */
 	public static function ensure(): void {
 		// A standalone MCP Adapter plugin is already active — defer to it.
-		if ( class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
+		// Use defined() instead of class_exists() so WooCommerce's vendored
+		// adapter (which never defines WP_MCP_VERSION) doesn't block us.
+		if ( defined( 'WP_MCP_VERSION' ) ) {
 			self::$source = 'external';
 			return;
 		}
@@ -66,6 +68,7 @@ final class EMCP_Tools_Adapter_Bootstrap {
 		}
 
 		// Minimal PSR-4 autoloader for the bundled adapter's WP\MCP\ namespace.
+		// Second true = prepend, so our loader wins over WooCommerce's vendored copy.
 		spl_autoload_register(
 			static function ( $class ) use ( $base ) {
 				$prefix = 'WP\\MCP\\';
@@ -77,7 +80,9 @@ final class EMCP_Tools_Adapter_Bootstrap {
 				if ( is_readable( $file ) ) {
 					require_once $file;
 				}
-			}
+			},
+			true,
+			true
 		);
 
 		// The standalone plugin defines these in its bootstrap; replicate for

@@ -1,0 +1,59 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build release zip
+        run: |
+          TAG=${GITHUB_REF_NAME#v}
+          ZIP_NAME="emcp-tools-$TAG.zip"
+          mkdir -p release-build
+
+          rsync -av \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.gitignore' \
+            --exclude='.claude/' \
+            --exclude='.commandcode/' \
+            --exclude='docs/' \
+            --exclude='tests/' \
+            --exclude='tools/' \
+            --exclude='skills/' \
+            --exclude='vendor/' \
+            --exclude='composer.lock' \
+            --exclude='*.md' \
+            --exclude='CLAUDE.md' \
+            --exclude='pro/' \
+            --exclude='releases/' \
+            --exclude='.vscode/' \
+            --exclude='.DS_Store' \
+            --exclude='Thumbs.db' \
+            ./ release-build/emcp-tools/
+
+          cd release-build
+          zip -r "../$ZIP_NAME" emcp-tools/
+          cd ..
+          echo "ZIP=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          body: |
+            Automated release of EMCP Tools fork with WooCommerce MCP adapter fix.
+
+            Changes from upstream:
+            - Fixed `class-mcp-adapter-bootstrap.php`: uses `defined('WP_MCP_VERSION')` instead of `class_exists()` to detect standalone adapter
+            - Added `prepend=true` to autoloader registration so EMCP's loader wins over WooCommerce's vendored adapter
+          files: ${{ env.ZIP }}
+          draft: true
